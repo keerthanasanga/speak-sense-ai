@@ -47,3 +47,7 @@ env/
 
 # docker
 docker-compose.override.yml
+
+# server-specific ignores
+server/node_modules/
+server/.env
