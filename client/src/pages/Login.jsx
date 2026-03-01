@@ -13,19 +13,39 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
-    if (apiError) setApiError('');
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value
+    });
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
+    // Clear API error when user starts typing
+    if (apiError) {
+      setApiError('');
+    }
   };
 
-  const validate = () => {
-    const errs = {};
-    if (!formData.email.trim()) errs.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errs.email = 'Enter a valid email';
-    if (!formData.password) errs.password = 'Password is required';
-    else if (formData.password.length < 8) errs.password = 'At least 8 characters required';
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
@@ -44,93 +64,151 @@ const Login = () => {
     }
   };
 
-  const handleSocialSignIn = async (provider) => {
-    setIsLoading(true);
-    setApiError('');
-    try {
-      const res = await API.post('/auth/social', { provider, mode: 'demo' });
-      if (res.data.token) localStorage.setItem('token', res.data.token);
-      if (res.data.user) localStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate('/dashboard');
-    } catch (err) {
-      setApiError(err.response?.data?.message || `${provider} sign in failed. Please try again.`);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSocialLogin = (provider) => {
+    console.log(`Logging in with ${provider}`);
+    // Implement social login logic here
+    setApiError(`${provider} login coming soon!`);
   };
-
-  const handleDemoSignIn = async () => {
-    setIsLoading(true);
-    setApiError('');
-    try {
-      const res = await API.post('/auth/demo');
-      if (res.data.token) localStorage.setItem('token', res.data.token);
-      if (res.data.user) localStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate('/dashboard');
-    } catch (err) {
-      setApiError(err.response?.data?.message || 'Demo sign in failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const features = [
-    '🎯 AI-powered mock interviews',
-    '📊 Real-time speech analysis',
-    '🧠 Grammar & vocabulary feedback',
-    '🚀 Track your progress over time',
-  ];
 
   return (
-    <div className="auth-page">
-      {/* Animated background */}
-      <div className="auth-blob auth-blob-1" />
-      <div className="auth-blob auth-blob-2" />
-      <div className="auth-blob auth-blob-3" />
-      <div className="auth-grid" />
+    <div className="auth-container">
+      {/* Background with gradient */}
+      <div className="auth-background">
+        <div className="auth-overlay"></div>
+      </div>
 
-      <div className="auth-card">
-        {/* ── LEFT BRAND ── */}
+      <div className="auth-wrapper">
+        {/* Left Side - Branding */}
         <div className="auth-brand">
-          <div className="brand-inner">
-            <Link to="/" className="auth-logo">
-              <span className="auth-logo-icon">🎙️</span>
-              <span className="auth-logo-text">SpeakSense AI</span>
-            </Link>
-
-            <h1>Welcome<br />Back 👋</h1>
-            <p className="auth-brand-sub">
-              Continue your journey to interview mastery with AI-powered coaching and real-time feedback.
-            </p>
-
-            <div className="auth-features">
-              {features.map((f, i) => (
-                <div className="auth-feature" key={i}>
-                  <span className="auth-feature-dot" />
-                  <span>{f}</span>
-                </div>
-              ))}
+          <Link to="/" className="brand-logo">
+            <i className="fas fa-microphone-alt"></i>
+            <span>SpeakSense AI</span>
+          </Link>
+          <h1>Welcome Back!</h1>
+          <p>Continue your journey to interview mastery. Log in to access your interviews and progress.</p>
+          
+          <div className="brand-features">
+            <div className="brand-feature">
+              <i className="fas fa-history"></i>
+              <div>
+                <h4>View History</h4>
+                <p>Check your past interview sessions</p>
+              </div>
             </div>
-
-            <div className="auth-quote">
-              <p>"SpeakSense transformed how I prepare for interviews. I went from nervous to confident in just 2 weeks!"</p>
-              <div className="auth-quote-author">
-                <div className="auth-quote-avatar">👨‍💼</div>
-                <div>
-                  <span className="auth-quote-name">Rahul Sharma</span>
-                  <span className="auth-quote-title">Software Engineer @ Google</span>
-                </div>
+            <div className="brand-feature">
+              <i className="fas fa-chart-line"></i>
+              <div>
+                <h4>Track Progress</h4>
+                <p>Monitor your improvement over time</p>
+              </div>
+            </div>
+            <div className="brand-feature">
+              <i className="fas fa-redo"></i>
+              <div>
+                <h4>Practice Again</h4>
+                <p>Continue practicing with new questions</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── RIGHT FORM ── */}
-        <div className="auth-form-panel">
-          <div className="auth-form-inner">
-            <div className="auth-form-head">
-              <h2>Sign In</h2>
-              <p>Pick up where you left off</p>
+        {/* Right Side - Login Form */}
+        <div className="auth-form-container">
+          <div className="auth-form-header">
+            <h2>Sign In</h2>
+            <p>Access your SpeakSense AI account</p>
+          </div>
+
+          {apiError && <div className="alert alert-error">{apiError}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            {/* Email */}
+            <div className="form-group">
+              <label htmlFor="email">
+                <i className="fas fa-envelope"></i>
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="john@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                className={errors.email ? 'error' : ''}
+                disabled={isLoading}
+              />
+              {errors.email && <span className="error-message">{errors.email}</span>}
+            </div>
+
+            {/* Password */}
+            <div className="form-group">
+              <label htmlFor="password">
+                <i className="fas fa-lock"></i>
+                Password
+              </label>
+              <div className="password-input">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={errors.password ? 'error' : ''}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
+                >
+                  <i className={`fas fa-${showPassword ? 'eye-slash' : 'eye'}`}></i>
+                </button>
+              </div>
+              {errors.password && <span className="error-message">{errors.password}</span>}
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="login-options">
+              <label className="checkbox-label remember-me">
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <span>Remember me</span>
+              </label>
+              <Link to="/forgot-password" className="forgot-password-link">
+                Forgot Password?
+              </Link>
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              type="submit" 
+              className="auth-submit-btn"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i>
+                  Signing In...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-sign-in-alt"></i>
+                  Sign In
+                </>
+              )}
+            </button>
+
+            {/* Social Login */}
+            <div className="auth-divider">
+              <span>or sign in with</span>
             </div>
 
             {/* Social buttons */}
@@ -143,89 +221,11 @@ const Login = () => {
               </button>
             </div>
 
-            <button type="button" className="auth-submit" onClick={handleDemoSignIn} disabled={isLoading} style={{ marginTop: '0.75rem' }}>
-              {isLoading ? <><span className="auth-spinner" /> Opening demo…</> : 'Try Demo Account'}
-            </button>
-
-            <div className="auth-divider">or continue with email</div>
-
-            {apiError && (
-              <div className="auth-api-error">
-                <span>⚠️</span> {apiError}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} noValidate>
-              {/* Email */}
-              <div className="auth-field">
-                <label htmlFor="email">Email Address</label>
-                <div className="auth-input-wrap">
-                  <span className="auth-input-icon">✉️</span>
-                  <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    className={`auth-input ${errors.email ? 'is-error' : ''}`}
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    autoComplete="email"
-                  />
-                </div>
-                {errors.email && <span className="auth-field-error">{errors.email}</span>}
-              </div>
-
-              {/* Password */}
-              <div className="auth-field">
-                <label htmlFor="password">Password</label>
-                <div className="auth-input-wrap">
-                  <span className="auth-input-icon">🔒</span>
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    className={`auth-input ${errors.password ? 'is-error' : ''}`}
-                    placeholder="Your password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    className="auth-input-icon-right"
-                    onClick={() => setShowPassword(v => !v)}
-                    aria-label="Toggle password"
-                  >
-                    {showPassword ? '🙈' : '👁️'}
-                  </button>
-                </div>
-                {errors.password && <span className="auth-field-error">{errors.password}</span>}
-              </div>
-
-              {/* Remember + Forgot */}
-              <div className="auth-row">
-                <label className="auth-checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="rememberMe"
-                    className="auth-checkbox"
-                    checked={formData.rememberMe}
-                    onChange={handleChange}
-                  />
-                  Remember me
-                </label>
-                <Link to="/forgot-password" className="auth-forgot">Forgot password?</Link>
-              </div>
-
-              <button type="submit" className="auth-submit" disabled={isLoading}>
-                {isLoading ? <><span className="auth-spinner" /> Signing in…</> : 'Sign In →'}
-              </button>
-            </form>
-
-            <div className="auth-bottom">
-              Don't have an account? <Link to="/signup">Create one free</Link>
+            {/* Sign Up Link */}
+            <div className="auth-redirect">
+              Don't have an account? <Link to="/signup">Sign Up</Link>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

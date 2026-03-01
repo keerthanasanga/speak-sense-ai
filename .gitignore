@@ -1,6 +1,4 @@
-# ===========================
-# SpeakSense AI  –  .gitignore
-# ===========================
+
 
 # ── Node / npm ──────────────────────────
 node_modules/
@@ -88,9 +86,18 @@ dist/
 .Python
 
 # ── Docker ───────────────────────────────
-docker-compose.override.yml
-.docker/
+docker-compose.override.y
+# server-specific ignores
+server/node_modules/
+server/.env
 
+# .gitignore
+.env
+.env.local
+.env.production
+node_modules/
+uploads/
+=======
 # ── Logs ─────────────────────────────────
 logs/
 *.log
@@ -113,3 +120,4 @@ temp/
 .stylelintcache
 .turbo/
 storybook-static/
+

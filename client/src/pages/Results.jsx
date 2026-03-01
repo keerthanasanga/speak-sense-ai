@@ -1,49 +1,56 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./results.css";
 
 export default function Results() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [animatedScores, setAnimatedScores] = useState({});
-  const [latestSummary, setLatestSummary] = useState(null);
-  const [profile, setProfile] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch {
-      return null;
-    }
-  });
+  
+  // Get data from navigation state with safe defaults
+  const { feedback, answers, selections, jobRole } = location.state || {};
 
-  // Mock data for the interview results
-  const results = {
-    overall: {
-      score: 78,
-      percentile: 85,
-      grade: "B+",
-      timeSpent: "32 minutes",
-      questionsAttempted: 12,
-      totalQuestions: 15
-    },
-    
+  // If no data, redirect to dashboard
+  useEffect(() => {
+    if (!feedback) {
+      navigate('/dashboard');
+    }
+  }, [feedback, navigate]);
+
+  // Safe defaults for all data
+  const safeFeedback = feedback || {
+    overallScore: 0,
+    strengths: [],
+    improvements: [],
+    summary: "No feedback available",
+    questionFeedback: []
+  };
+
+  const safeAnswers = answers || [];
+  const safeSelections = selections || {};
+  const safeJobRole = jobRole || "General Interview";
+
+  // Mock data for additional analytics (in real app, this would come from backend)
+  const mockAnalytics = {
     confidence: {
-      score: 82,
-      level: "High",
+      score: safeFeedback.overallScore || 78,
+      level: safeFeedback.overallScore >= 80 ? "High" : safeFeedback.overallScore >= 60 ? "Moderate" : "Needs Improvement",
       breakdown: [
-        { phase: "Introduction", score: 90 },
-        { phase: "Technical Answers", score: 75 },
-        { phase: "Behavioral Responses", score: 85 },
-        { phase: "Closing Statements", score: 78 }
+        { phase: "Introduction", score: safeFeedback.overallScore || 78 },
+        { phase: "Technical Answers", score: (safeFeedback.overallScore || 78) - 5 },
+        { phase: "Behavioral Responses", score: (safeFeedback.overallScore || 78) + 3 },
+        { phase: "Closing Statements", score: (safeFeedback.overallScore || 78) - 2 }
       ],
       timeline: [
-        { minute: 1, level: 85 },
-        { minute: 2, level: 88 },
-        { minute: 3, level: 82 },
-        { minute: 4, level: 79 },
-        { minute: 5, level: 84 },
-        { minute: 6, level: 81 },
-        { minute: 7, level: 86 },
-        { minute: 8, level: 83 }
+        { minute: 1, level: safeFeedback.overallScore || 78 },
+        { minute: 2, level: (safeFeedback.overallScore || 78) + 2 },
+        { minute: 3, level: (safeFeedback.overallScore || 78) - 3 },
+        { minute: 4, level: (safeFeedback.overallScore || 78) + 1 },
+        { minute: 5, level: (safeFeedback.overallScore || 78) - 1 },
+        { minute: 6, level: (safeFeedback.overallScore || 78) + 4 },
+        { minute: 7, level: (safeFeedback.overallScore || 78) + 2 },
+        { minute: 8, level: (safeFeedback.overallScore || 78) - 2 }
       ]
     },
 
@@ -85,69 +92,81 @@ export default function Results() {
     },
 
     categories: {
-      technical: 76,
-      behavioral: 84,
-      communication: 79,
-      problemSolving: 73,
-      clarity: 81
-    },
+      technical: safeFeedback.overallScore ? safeFeedback.overallScore - 5 : 70,
+      behavioral: safeFeedback.overallScore ? safeFeedback.overallScore + 3 : 75,
+      communication: safeFeedback.overallScore ? safeFeedback.overallScore - 2 : 72,
+      problemSolving: safeFeedback.overallScore ? safeFeedback.overallScore - 8 : 65,
+      clarity: safeFeedback.overallScore ? safeFeedback.overallScore + 2 : 74
+    }
+  };
 
-    questionAnalysis: [
-      {
-        id: 1,
-        question: "Tell me about yourself",
-        score: 85,
-        feedback: "Good introduction, could be more concise",
-        strengths: ["Clear structure", "Relevant experience"],
-        improvements: ["Reduce length", "Add more achievements"]
-      },
-      {
-        id: 2,
-        question: "Explain a challenging project",
-        score: 72,
-        feedback: "Good technical details, needs more impact",
-        strengths: ["Technical depth", "Problem explanation"],
-        improvements: ["Highlight results", "Use STAR method"]
-      },
-      {
-        id: 3,
-        question: "How do you handle conflicts?",
-        score: 88,
-        feedback: "Excellent example, well-structured",
-        strengths: ["Clear example", "Good resolution"],
-        improvements: ["Add more specific details"]
-      },
-      {
-        id: 4,
-        question: "Technical: Array manipulation",
-        score: 68,
-        feedback: "Correct approach, needs optimization",
-        strengths: ["Understanding of problem", "Basic solution"],
-        improvements: ["Optimize time complexity", "Consider edge cases"]
-      },
-      {
-        id: 5,
-        question: "Future career goals",
-        score: 76,
-        feedback: "Good vision, could be more specific",
-        strengths: ["Clear direction", "Ambition shown"],
-        improvements: ["Add timeline", "Be more specific"]
-      }
-    ],
+  // Use actual feedback data if available
+  const results = {
+    overall: {
+      score: safeFeedback.overallScore || 0,
+      percentile: 85,
+      grade: safeFeedback.overallScore >= 90 ? "A" : 
+             safeFeedback.overallScore >= 80 ? "B+" :
+             safeFeedback.overallScore >= 70 ? "B" :
+             safeFeedback.overallScore >= 60 ? "C" : "D",
+      timeSpent: "32 minutes",
+      questionsAttempted: safeAnswers.length || 0,
+      totalQuestions: safeFeedback.questionCount || safeAnswers.length || 0,
+      role: safeJobRole,
+      difficulty: safeSelections.difficulty?.name || "Intermediate",
+      type: safeSelections.type?.name || "Mixed"
+    },
+    
+    confidence: mockAnalytics.confidence,
+    speaking: mockAnalytics.speaking,
+    grammar: mockAnalytics.grammar,
+    sentenceStructure: mockAnalytics.sentenceStructure,
+    categories: mockAnalytics.categories,
+
+    questionAnalysis: (safeFeedback.questionFeedback && safeFeedback.questionFeedback.length > 0) 
+      ? safeFeedback.questionFeedback.map((q, index) => ({
+          id: index + 1,
+          question: q.question || "Question",
+          answer: safeAnswers[index]?.answer || "",
+          score: q.score || 70,
+          feedback: q.comment || "Good response",
+          strengths: q.strengths || [
+            "Good communication",
+            "Relevant experience shown"
+          ],
+          improvements: q.improvements || [
+            "Add more specific examples",
+            "Quantify achievements"
+          ]
+        }))
+      : safeAnswers.map((answer, index) => ({
+          id: index + 1,
+          question: answer.question || "Question",
+          answer: answer.answer || "",
+          score: 75,
+          feedback: "Good response",
+          strengths: [
+            "Good communication",
+            "Relevant experience shown"
+          ],
+          improvements: [
+            "Add more specific examples",
+            "Quantify achievements"
+          ]
+        })),
 
     feedback: {
-      positive: [
-        "Good eye contact throughout",
-        "Clear articulation",
-        "Well-structured responses",
-        "Professional demeanor"
+      positive: safeFeedback.strengths || [
+        "Good communication skills",
+        "Clear responses",
+        "Relevant experience"
       ],
-      improvements: [
-        "Reduce filler words (um, uh, like)",
-        "Slow down during technical explanations",
-        "Provide more quantifiable achievements",
-        "Practice closing statements"
-      ]
+      improvements: safeFeedback.improvements || [
+        "Provide more examples",
+        "Quantify achievements",
+        "Elaborate on details"
+      ],
+      summary: safeFeedback.summary || "Good interview performance"
     }
   };
 
@@ -180,7 +199,11 @@ export default function Results() {
       });
     }, 500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [results]);
+
+  if (!feedback) {
+    return <div className="loading">Loading...</div>;
+  }
 
   return (
     <div className="results-page">
@@ -193,16 +216,26 @@ export default function Results() {
       </div>
 
       <div className="results-container">
-        {/* Header */}
+        {/* Header with Interview Info */}
         <div className="results-header">
           <Link to="/dashboard" className="back-link">
             <span className="back-icon">←</span>
             Back to Dashboard
           </Link>
-          <h1>Interview Results & Analytics</h1>
-          {profile?.industry && (
-            <div className="industry-chip">{profile.industry}</div>
-          )}
+          <div className="header-title">
+            <h1>Interview Results & Analytics</h1>
+            <div className="interview-info-badges">
+              <span className="role-badge">{results.overall.role}</span>
+              <span className="difficulty-badge" style={{
+                background: safeSelections.difficulty?.id === 1 ? '#48bb78' :
+                           safeSelections.difficulty?.id === 2 ? '#ecc94b' :
+                           safeSelections.difficulty?.id === 3 ? '#f56565' : '#9f7aea'
+              }}>
+                {results.overall.difficulty}
+              </span>
+              <span className="type-badge">{results.overall.type}</span>
+            </div>
+          </div>
           <div className="header-actions">
             <button className="share-btn" onClick={() => window.print()}>
               <span>📊</span>
@@ -274,7 +307,7 @@ export default function Results() {
                   <div className="score-icon">🎯</div>
                   <div className="score-details">
                     <span className="score-label">Overall Score</span>
-                    <span className="score-value">{results.overall.score}</span>
+                    <span className="score-value">{results.overall.score}%</span>
                     <span className="score-grade">Grade {results.overall.grade}</span>
                   </div>
                   <div className="progress-ring">
@@ -432,6 +465,22 @@ export default function Results() {
                       <li key={index}>{item}</li>
                     ))}
                   </ul>
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="summary-card">
+                <h4>📋 Interview Summary</h4>
+                <p>{results.feedback.summary}</p>
+                <div className="summary-stats">
+                  <div className="stat">
+                    <span>Questions Answered</span>
+                    <strong>{results.overall.questionsAttempted}/{results.overall.totalQuestions}</strong>
+                  </div>
+                  <div className="stat">
+                    <span>Time Spent</span>
+                    <strong>{results.overall.timeSpent}</strong>
+                  </div>
                 </div>
               </div>
             </div>
@@ -611,41 +660,63 @@ export default function Results() {
               <h2>Question Analysis</h2>
               
               <div className="questions-list">
-                {results.questionAnalysis.map((q, index) => (
-                  <div key={q.id} className="question-card">
-                    <div className="question-header">
-                      <span className="question-number">Q{index + 1}</span>
-                      <h3>{q.question}</h3>
-                      <div className="question-score" style={{
-                        background: `conic-gradient(${q.score >= 80 ? '#48bb78' : q.score >= 60 ? '#f6ad55' : '#f56565'} ${q.score * 3.6}deg, #1a2634 ${q.score * 3.6}deg)`
-                      }}>
-                        <span>{q.score}</span>
-                      </div>
-                    </div>
-                    
-                    <p className="question-feedback">{q.feedback}</p>
-                    
-                    <div className="question-details">
-                      <div className="strengths">
-                        <h4>✓ Strengths</h4>
-                        <ul>
-                          {q.strengths.map((s, i) => (
-                            <li key={i}>{s}</li>
-                          ))}
-                        </ul>
+                {results.questionAnalysis && results.questionAnalysis.length > 0 ? (
+                  results.questionAnalysis.map((q, index) => (
+                    <div key={q.id || index} className="question-card">
+                      <div className="question-header">
+                        <span className="question-number">Q{index + 1}</span>
+                        <h3>{q.question || "Question"}</h3>
+                        <div className="question-score" style={{
+                          background: `conic-gradient(${q.score >= 80 ? '#48bb78' : q.score >= 60 ? '#f6ad55' : '#f56565'} ${q.score * 3.6}deg, #1a2634 ${q.score * 3.6}deg)`
+                        }}>
+                          <span>{q.score}</span>
+                        </div>
                       </div>
                       
-                      <div className="improvements">
-                        <h4>⚡ Improvements</h4>
-                        <ul>
-                          {q.improvements.map((imp, i) => (
-                            <li key={i}>{imp}</li>
-                          ))}
-                        </ul>
+                      <p className="question-feedback">{q.feedback || "Good response"}</p>
+                      
+                      {/* Show actual answer if available */}
+                      {q.answer && (
+                        <div className="user-answer">
+                          <h4>Your Answer:</h4>
+                          <p>"{q.answer}"</p>
+                        </div>
+                      )}
+                      
+                      <div className="question-details">
+                        <div className="strengths">
+                          <h4>✓ Strengths</h4>
+                          <ul>
+                            {q.strengths && q.strengths.length > 0 ? (
+                              q.strengths.map((s, i) => (
+                                <li key={i}>{s}</li>
+                              ))
+                            ) : (
+                              <li>Good response structure</li>
+                            )}
+                          </ul>
+                        </div>
+                        
+                        <div className="improvements">
+                          <h4>⚡ Improvements</h4>
+                          <ul>
+                            {q.improvements && q.improvements.length > 0 ? (
+                              q.improvements.map((imp, i) => (
+                                <li key={i}>{imp}</li>
+                              ))
+                            ) : (
+                              <li>Add more specific details</li>
+                            )}
+                          </ul>
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="no-questions">
+                    <p>No question data available</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
@@ -661,6 +732,242 @@ export default function Results() {
           </Link>
         </div>
       </div>
+
+      {/* Enhanced styles with larger fonts */}
+      <style>{`
+        .results-page {
+          font-size: 18px;
+          line-height: 1.6;
+        }
+
+        .results-header h1 {
+          font-size: 36px;
+          margin-bottom: 15px;
+        }
+
+        .score-value {
+          font-size: 42px;
+          font-weight: bold;
+        }
+
+        .score-label {
+          font-size: 18px;
+        }
+
+        .score-grade {
+          font-size: 16px;
+        }
+
+        .question-card h3 {
+          font-size: 20px;
+          line-height: 1.5;
+        }
+
+        .question-feedback {
+          font-size: 18px;
+        }
+
+        .user-answer p {
+          font-size: 18px;
+          line-height: 1.7;
+        }
+
+        .strengths li, .improvements li {
+          font-size: 17px;
+          margin-bottom: 10px;
+        }
+
+        .feedback-card li {
+          font-size: 17px;
+          margin-bottom: 12px;
+        }
+
+        .summary-card p {
+          font-size: 18px;
+          line-height: 1.8;
+        }
+
+        .summary-stats .stat strong {
+          font-size: 22px;
+        }
+
+        .summary-stats .stat span {
+          font-size: 16px;
+        }
+
+        .tab-btn {
+          font-size: 18px;
+          padding: 12px 24px;
+        }
+
+        .back-link, .share-btn, .new-interview-btn {
+          font-size: 17px;
+        }
+
+        .interview-info-badges {
+          font-size: 16px;
+        }
+
+        .role-badge, .difficulty-badge, .type-badge {
+          font-size: 15px;
+          padding: 6px 16px;
+        }
+
+        .chart-card h3 {
+          font-size: 22px;
+          margin-bottom: 20px;
+        }
+
+        .legend-label {
+          font-size: 17px;
+        }
+
+        .legend-value {
+          font-size: 17px;
+          font-weight: 600;
+        }
+
+        .bar-label {
+          font-size: 17px;
+        }
+
+        .bar-value {
+          font-size: 15px;
+        }
+
+        .phase-name {
+          font-size: 17px;
+        }
+
+        .phase-bar-value {
+          font-size: 15px;
+        }
+
+        .stat-item strong {
+          font-size: 18px;
+        }
+
+        .stat-item p {
+          font-size: 20px;
+          font-weight: bold;
+        }
+
+        .metric-label {
+          font-size: 16px;
+        }
+
+        .metric-value {
+          font-size: 24px;
+          font-weight: bold;
+        }
+
+        .distribution-segment .segment-value {
+          font-size: 16px;
+          font-weight: bold;
+        }
+
+        .distribution-segment .segment-label {
+          font-size: 14px;
+        }
+
+        .mistake-type {
+          font-size: 17px;
+        }
+
+        .mistake-severity {
+          font-size: 14px;
+        }
+
+        .structure-label {
+          font-size: 17px;
+        }
+
+        .loading {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          font-size: 24px;
+          color: #90caf9;
+          background: linear-gradient(135deg, #0a1929 0%, #1a2f3f 100%);
+        }
+
+        .no-questions {
+          text-align: center;
+          padding: 60px;
+          background: #132f4c;
+          border-radius: 16px;
+          color: #90caf9;
+          font-size: 20px;
+        }
+
+        /* Rest of the original CSS remains */
+        .interview-info-badges {
+          display: flex;
+          gap: 10px;
+          margin-top: 10px;
+          justify-content: center;
+        }
+
+        .role-badge {
+          background: #1e3a5f;
+          color: #bbdefb;
+          border: 1px solid #3b82f6;
+        }
+
+        .type-badge {
+          background: #2d4b6e;
+          color: #e5e9f0;
+        }
+
+        .header-title {
+          text-align: center;
+        }
+
+        .summary-card {
+          background: #0d2a40;
+          border-radius: 16px;
+          padding: 30px;
+          margin-top: 30px;
+          border: 1px solid #2d4b6e;
+        }
+
+        .summary-card h4 {
+          color: #90caf9;
+          margin-bottom: 20px;
+          font-size: 22px;
+        }
+
+        .summary-stats {
+          display: flex;
+          gap: 40px;
+          justify-content: center;
+          border-top: 1px solid #2d4b6e;
+          padding-top: 25px;
+          margin-top: 20px;
+        }
+
+        .summary-stats .stat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .user-answer {
+          background: #1a3349;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 20px 0;
+          border-left: 5px solid #4caf50;
+        }
+
+        .user-answer h4 {
+          color: #90caf9;
+          font-size: 18px;
+          margin-bottom: 12px;
+        }
+      `}</style>
     </div>
   );
 }
