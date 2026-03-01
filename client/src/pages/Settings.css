@@ -209,7 +209,7 @@
   top: 20px;
 }
 
-.profile-summary {
+.settings-profile-summary {
   display: flex;
   align-items: center;
   gap: 15px;
@@ -220,7 +220,7 @@
   border: 1px solid rgba(0, 150, 255, 0.2);
 }
 
-.profile-avatar {
+.settings-profile-avatar {
   width: 60px;
   height: 60px;
   background: linear-gradient(135deg, #0066cc, #003366);
@@ -232,20 +232,20 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.profile-info h3 {
+.settings-profile-info h3 {
   color: white;
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
-.profile-info p {
+.settings-profile-info p {
   color: #a0b0c0;
   font-size: 12px;
   margin-bottom: 8px;
 }
 
-.plan-badge {
+.settings-plan-badge {
   display: inline-block;
   padding: 4px 8px;
   background: rgba(0, 102, 204, 0.3);
@@ -263,7 +263,7 @@
   margin-bottom: 20px;
 }
 
-.nav-item {
+.settings-nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -280,23 +280,23 @@
   font-weight: 500;
 }
 
-.nav-item:hover {
+.settings-nav-item:hover {
   background: rgba(0, 45, 90, 0.5);
   color: white;
 }
 
-.nav-item.active {
+.settings-nav-item.active {
   background: rgba(0, 45, 90, 0.8);
   color: white;
   border-left: 3px solid #0066cc;
 }
 
-.nav-icon {
+.settings-nav-icon {
   font-size: 18px;
   width: 24px;
 }
 
-.nav-badge {
+.settings-nav-badge {
   margin-left: auto;
   padding: 2px 6px;
   background: #0066cc;
@@ -306,12 +306,12 @@
   font-weight: 600;
 }
 
-.sidebar-footer {
+.settings-sidebar-footer {
   padding-top: 20px;
   border-top: 1px solid rgba(0, 100, 200, 0.2);
 }
 
-.danger-btn {
+.settings-danger-btn {
   width: 100%;
   padding: 12px;
   background: rgba(255, 68, 68, 0.1);
@@ -328,7 +328,7 @@
   gap: 8px;
 }
 
-.danger-btn:hover {
+.settings-danger-btn:hover {
   background: rgba(255, 68, 68, 0.2);
   border-color: #ff4444;
 }

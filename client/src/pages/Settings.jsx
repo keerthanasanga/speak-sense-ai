@@ -2,27 +2,43 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Settings.css";
 
+const defaultProfile = {
+  fullName: "John Doe",
+  email: "john.doe@example.com",
+  username: "johndoe",
+  bio: "Full Stack Developer passionate about AI and machine learning. Currently preparing for tech interviews.",
+  location: "San Francisco, CA",
+  website: "https://johndoe.dev",
+  github: "johndoe",
+  linkedin: "john-doe",
+  twitter: "@johndoe",
+  profilePicture: "👨‍💻",
+  jobTitle: "Senior Software Engineer",
+  company: "Tech Corp",
+  experience: "8 years",
+  education: "M.S. Computer Science",
+};
+
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   
   // User Profile State
-  const [profile, setProfile] = useState({
-    fullName: "John Doe",
-    email: "john.doe@example.com",
-    username: "johndoe",
-    bio: "Full Stack Developer passionate about AI and machine learning. Currently preparing for tech interviews.",
-    location: "San Francisco, CA",
-    website: "https://johndoe.dev",
-    github: "johndoe",
-    linkedin: "john-doe",
-    twitter: "@johndoe",
-    profilePicture: "👨‍💻",
-    jobTitle: "Senior Software Engineer",
-    company: "Tech Corp",
-    experience: "8 years",
-    education: "M.S. Computer Science",
+  const [profile, setProfile] = useState(() => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+      if (!storedUser) return defaultProfile;
+
+      return {
+        ...defaultProfile,
+        fullName: storedUser.name || defaultProfile.fullName,
+        email: storedUser.email || defaultProfile.email,
+        experience: storedUser.experience || defaultProfile.experience,
+      };
+    } catch {
+      return defaultProfile;
+    }
   });
 
   // Account Settings State
@@ -115,6 +131,21 @@ export default function Settings() {
     setSaveSuccess(false);
     
     setTimeout(() => {
+      try {
+        const existingUser = JSON.parse(localStorage.getItem("user") || "null") || {};
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...existingUser,
+            name: profile.fullName,
+            email: profile.email,
+            experience: profile.experience,
+          })
+        );
+      } catch {
+        // ignore localStorage failures
+      }
+
       setIsLoading(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -239,14 +270,14 @@ export default function Settings() {
         <div className="settings-layout">
           {/* Sidebar */}
           <div className="settings-sidebar">
-            <div className="profile-summary">
-              <div className="profile-avatar">
+            <div className="settings-profile-summary">
+              <div className="settings-profile-avatar">
                 <span className="avatar-emoji">{profile.profilePicture}</span>
               </div>
-              <div className="profile-info">
+              <div className="settings-profile-info">
                 <h3>{profile.fullName}</h3>
                 <p>{profile.email}</p>
-                <span className="plan-badge">
+                <span className="settings-plan-badge">
                   {billing.plan === "pro" ? "PRO Plan" : "Free Plan"}
                 </span>
               </div>
@@ -256,20 +287,20 @@ export default function Settings() {
               {tabs.map(tab => (
                 <button
                   key={tab.id}
-                  className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                  className={`settings-nav-item ${activeTab === tab.id ? 'active' : ''}`}
                   onClick={() => setActiveTab(tab.id)}
                 >
-                  <span className="nav-icon">{tab.icon}</span>
-                  <span className="nav-name">{tab.name}</span>
+                  <span className="settings-nav-icon">{tab.icon}</span>
+                  <span className="settings-nav-name">{tab.name}</span>
                   {tab.id === "billing" && (
-                    <span className="nav-badge">Pro</span>
+                    <span className="settings-nav-badge">Pro</span>
                   )}
                 </button>
               ))}
             </nav>
 
-            <div className="sidebar-footer">
-              <button className="danger-btn">
+            <div className="settings-sidebar-footer">
+              <button className="settings-danger-btn">
                 <span>⚠️</span>
                 Delete Account
               </button>
@@ -915,7 +946,7 @@ export default function Settings() {
                     <p>You can request a copy of your data or delete your account permanently.</p>
                     <div className="warning-actions">
                       <button className="secondary-btn">Request Data Export</button>
-                      <button className="danger-btn">Delete Account</button>
+                      <button className="settings-danger-btn">Delete Account</button>
                     </div>
                   </div>
                 </div>

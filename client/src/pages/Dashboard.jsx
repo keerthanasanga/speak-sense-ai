@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import API from "../services/api";
 import "./dashboard.css";
 
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState(location.pathname.toLowerCase());
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const navRightRef = useRef(null);
 
   const [user, setUser] = useState(() => {
     try {
@@ -106,8 +107,21 @@ export default function Dashboard() {
     setActiveTab(location.pathname.toLowerCase());
   }, [location.pathname]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (navRightRef.current && !navRightRef.current.contains(event.target)) {
+        setShowNotifications(false);
+        setShowProfile(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
-    // Add logout logic here
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/login");
   };
 
@@ -182,12 +196,15 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        <div className="nav-right">
+        <div className="nav-right" ref={navRightRef}>
           {/* Notifications */}
           <div className="notifications-dropdown">
             <button 
               className="notification-btn"
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={() => {
+                setShowNotifications((prev) => !prev);
+                setShowProfile(false);
+              }}
             >
               <span className="notification-icon">🔔</span>
               {user.notifications > 0 && (
@@ -229,7 +246,10 @@ export default function Dashboard() {
           <div className="profile-dropdown">
             <button 
               className="profile-btn"
-              onClick={() => setShowProfile(!showProfile)}
+              onClick={() => {
+                setShowProfile((prev) => !prev);
+                setShowNotifications(false);
+              }}
             >
               <span className="profile-avatar">{user.avatar}</span>
               <span className="profile-name">{user.name.split(' ')[0]}</span>

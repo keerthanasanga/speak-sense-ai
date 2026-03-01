@@ -118,6 +118,36 @@ const getCategoryQuestions = (role) => {
     return mockQuestions.general;
 };
 
+function buildQuestionAwareReply(message, role, nextQuestion) {
+    const text = (message || '').trim();
+    const lower = text.toLowerCase();
+    const askedQuestion = text.includes('?') || /\b(what|why|how|when|where|can you|could you|do you|is it)\b/.test(lower);
+
+    const roleHint = role ? ` for this ${role} interview` : '';
+
+    if (!askedQuestion) {
+        return nextQuestion;
+    }
+
+    if (/\breact|component|hooks|frontend\b/.test(lower)) {
+        return `Great question. In short, keep your React answers focused on state flow, component boundaries, and measurable UI impact.${roleHint}. ${nextQuestion}`;
+    }
+
+    if (/\bnode|express|backend|api|server\b/.test(lower)) {
+        return `Good question. Emphasize request lifecycle, middleware design, and reliability tradeoffs when discussing backend work${roleHint}. ${nextQuestion}`;
+    }
+
+    if (/\bsql|database|mongo|query\b/.test(lower)) {
+        return `Strong question. Discuss schema choices, indexing, and query optimization with one concrete example${roleHint}. ${nextQuestion}`;
+    }
+
+    if (/\bbehavior|team|conflict|lead\b/.test(lower)) {
+        return `Good point. For behavioral questions, answer with STAR and include a measurable outcome${roleHint}. ${nextQuestion}`;
+    }
+
+    return `Great question. I’ll answer briefly and keep us progressing: focus on clarity, outcomes, and structured examples${roleHint}. ${nextQuestion}`;
+}
+
 // Start interview session
 router.post('/start', (req, res) => {
     const { avatar, role, config, industry } = req.body;
@@ -149,6 +179,7 @@ router.post('/chat', (req, res) => {
     setTimeout(() => {
         const configuredMax = Number(config?.questionCount) || 5;
         const maxQuestions = Math.min(Math.max(configuredMax, 3), 10);
+        const lowerMessage = (message || '').toLowerCase();
 
         if (questionCount >= maxQuestions) {
             return res.status(200).json({
@@ -161,12 +192,27 @@ router.post('/chat', (req, res) => {
         const questions = getCategoryQuestions(role);
         const nextQuestion = questions[questionCount % questions.length] || questions[0];
 
+        if (/\b(next question|move on|continue|ask me next|let's continue)\b/.test(lowerMessage)) {
+            let reasonPrefix = '';
+            if (lowerMessage.includes('too hard')) reasonPrefix = "No problem — we can revisit that later. ";
+            else if (lowerMessage.includes('clarification')) reasonPrefix = "Understood. I'll ask a clearer follow-up. ";
+            else if (lowerMessage.includes('already answered') || lowerMessage.includes('repeated')) reasonPrefix = "Makes sense — let's avoid repetition. ";
+            else if (lowerMessage.includes('time management')) reasonPrefix = "Good call on pacing. ";
+
+            return res.status(200).json({
+                response: `${reasonPrefix}Sure — let's continue. ${nextQuestion}`,
+                isComplete: false
+            });
+        }
+
         // Add some random conversational filler sometimes
         const fillers = ["That's interesting.", "I see.", "Good point.", "Understood."];
         const filler = Math.random() > 0.5 ? fillers[Math.floor(Math.random() * fillers.length)] + " " : "";
 
+        const contextualReply = buildQuestionAwareReply(message, role, nextQuestion);
+
         res.status(200).json({
-            response: `${filler}${nextQuestion}`,
+            response: `${filler}${contextualReply}`,
             isComplete: false
         });
     }, 1000); // 1 second delay

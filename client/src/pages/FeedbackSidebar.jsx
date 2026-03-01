@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import API from '../services/api';
 import './FeedbackSidebar.css';
 
@@ -7,30 +7,42 @@ import './FeedbackSidebar.css';
  * Analyzes the latest user message via /api/interview/analyze
  * and shows grammar issues, improvement points, and suggested topics.
  */
-export default function FeedbackSidebar({ lastUserMessage, isOpen, onToggle }) {
+export default function FeedbackSidebar({ lastUserMessage, isOpen, onToggle, speechMetrics, analysisTrigger = 0 }) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState(null);
+    const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('grammar');
+
+    const analyzeAnswer = useCallback(async (message, cancelledRef) => {
+        if (!message || message.trim().length < 5) return;
+
+        setLoading(true);
+        setError('');
+        try {
+            const res = await API.post('/interview/analyze', { message });
+            if (!cancelledRef.current) {
+                setData({
+                    grammarIssues: Array.isArray(res.data?.grammarIssues) ? res.data.grammarIssues : [],
+                    improvements: Array.isArray(res.data?.improvements) ? res.data.improvements : [],
+                    topics: Array.isArray(res.data?.topics) ? res.data.topics : [],
+                    stats: res.data?.stats || null,
+                });
+            }
+        } catch {
+            if (!cancelledRef.current) {
+                setError('Could not analyze this answer. Please try again.');
+            }
+        } finally {
+            if (!cancelledRef.current) setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         if (!lastUserMessage || lastUserMessage.trim().length < 5) return;
-        let cancelled = false;
-
-        const analyze = async () => {
-            setLoading(true);
-            try {
-                const res = await API.post('/interview/analyze', { message: lastUserMessage });
-                if (!cancelled) setData(res.data);
-            } catch {
-                // Silently fail – don't interrupt interview
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        };
-
-        analyze();
-        return () => { cancelled = true; };
-    }, [lastUserMessage]);
+        const cancelledRef = { current: false };
+        analyzeAnswer(lastUserMessage, cancelledRef);
+        return () => { cancelledRef.current = true; };
+    }, [analyzeAnswer, analysisTrigger, lastUserMessage]);
 
     const scoreColor = (score) => {
         if (score >= 80) return '#22c55e';
@@ -51,6 +63,27 @@ export default function FeedbackSidebar({ lastUserMessage, isOpen, onToggle }) {
                         <h3>📋 Real-Time Feedback</h3>
                         <p>Analysis updates after each answer</p>
                     </div>
+
+                    {speechMetrics && (
+                        <div className="speech-metrics-card">
+                            <h4>🎙️ Speaking Quality</h4>
+                            <div className="speech-metrics-grid">
+                                <div className="speech-metric-item">
+                                    <span>{speechMetrics.wordsPerMinute || 0}</span>
+                                    <small>WPM</small>
+                                </div>
+                                <div className="speech-metric-item">
+                                    <span>{speechMetrics.fillerCount || 0}</span>
+                                    <small>Fillers</small>
+                                </div>
+                                <div className="speech-metric-item">
+                                    <span>{speechMetrics.pauseCount || 0}</span>
+                                    <small>Pauses</small>
+                                </div>
+                            </div>
+                            <p className="speech-coach-tip">{speechMetrics.tip || 'Keep a steady pace and pause intentionally.'}</p>
+                        </div>
+                    )}
 
                     {/* Score ring */}
                     {data?.stats && (
@@ -92,6 +125,17 @@ export default function FeedbackSidebar({ lastUserMessage, isOpen, onToggle }) {
                                 <div className="fb-spinner" />
                                 <p>Analyzing your answer…</p>
                             </div>
+                        ) : error ? (
+                            <div className="feedback-error">
+                                <p>{error}</p>
+                                <button
+                                    type="button"
+                                    className="feedback-retry-btn"
+                                    onClick={() => analyzeAnswer(lastUserMessage, { current: false })}
+                                >
+                                    Retry Analysis
+                                </button>
+                            </div>
                         ) : !data ? (
                             <div className="feedback-empty">
                                 <span className="feedback-empty-icon">💬</span>
@@ -102,13 +146,13 @@ export default function FeedbackSidebar({ lastUserMessage, isOpen, onToggle }) {
                                 {/* Grammar Tab */}
                                 {activeTab === 'grammar' && (
                                     <div className="feedback-list">
-                                        {data.grammarIssues.length === 0 ? (
+                                        {(data.grammarIssues || []).length === 0 ? (
                                             <div className="feedback-good">
                                                 <span>✅</span>
                                                 <p>No grammar issues detected! Great job.</p>
                                             </div>
                                         ) : (
-                                            data.grammarIssues.map((issue, i) => (
+                                            (data.grammarIssues || []).map((issue, i) => (
                                                 <div className="feedback-item issue" key={i}>
                                                     <div className="issue-chip">
                                                         <span className="issue-word">{issue.word}</span>
@@ -126,13 +170,13 @@ export default function FeedbackSidebar({ lastUserMessage, isOpen, onToggle }) {
                                 {/* Improve Tab */}
                                 {activeTab === 'improve' && (
                                     <div className="feedback-list">
-                                        {data.improvements.length === 0 ? (
+                                        {(data.improvements || []).length === 0 ? (
                                             <div className="feedback-good">
                                                 <span>🌟</span>
                                                 <p>Excellent answer structure!</p>
                                             </div>
                                         ) : (
-                                            data.improvements.map((pt, i) => (
+                                            (data.improvements || []).map((pt, i) => (
                                                 <div className="feedback-item improve" key={i}>
                                                     <span className="improve-bullet">→</span>
                                                     <p>{pt}</p>
@@ -146,7 +190,7 @@ export default function FeedbackSidebar({ lastUserMessage, isOpen, onToggle }) {
                                 {activeTab === 'topics' && (
                                     <div className="feedback-topics">
                                         <p className="topics-intro">Based on your answers, focus on:</p>
-                                        {data.topics.map((topic, i) => (
+                                        {(data.topics || []).map((topic, i) => (
                                             <div className="topic-chip" key={i} style={{ animationDelay: `${i * 0.08}s` }}>
                                                 <span className="topic-icon">📖</span>
                                                 <span>{topic}</span>

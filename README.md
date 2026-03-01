@@ -28,6 +28,11 @@ Template files are available:
 - `POSTGRES_PORT`
 - `POSTGRES_DB`
 
+### Frontend optional flags
+
+- `REACT_APP_EXPERIMENTAL_PROMPTS=true` enables experimental interview prompt mode in the client.
+- Local override for testing: set `localStorage` key `ff.experimentalPrompts` to `true` or `false`.
+
 ## Run with Docker Compose
 
 ```bash
