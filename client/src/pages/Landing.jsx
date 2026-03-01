@@ -537,9 +537,12 @@ export default function Landing() {
                   <h4>{testimonial.name}</h4>
                   <p>{testimonial.role}</p>
                 </div>
-                <span className="company-logo" aria-hidden="true">
-                  {getCompanyBadge(testimonial.company)}
-                </span>
+                {navigator.onLine && (
+                  <img src={`https://logo.clearbit.com/${testimonial.company.toLowerCase()}.com`} 
+                       alt={testimonial.company}
+                       className="company-logo"
+                       onError={(e) => e.target.style.display = 'none'} />
+                )}
               </div>
               <div className="rating">
                 {'★'.repeat(testimonial.rating)}

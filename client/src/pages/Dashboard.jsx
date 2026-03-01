@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import API from "../services/api";
 import "./dashboard.css";
 
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -180,6 +181,15 @@ export default function Dashboard() {
             <span className="nav-icon">⚙️</span>
             <span>Settings</span>
           </Link>
+          <Link 
+            to="/Resume" 
+            className={`nav-item ${activeTab === 'Resume' ? 'active' : ''}`}
+            onClick={() => setActiveTab('Resume')}
+          >
+            <span className="nav-icon">📈</span>
+            <span>Resume</span>
+          </Link>
+      
         </div>
 
         <div className="nav-right">

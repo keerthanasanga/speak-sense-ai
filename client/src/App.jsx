@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -12,6 +13,7 @@ import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Practice from "./pages/Practice";
 import Courses from "./pages/Courses";
+import Resume from "./pages/Resume";
 
 function App() {
   return (
@@ -29,30 +31,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/practice" element={<Practice />} />
         <Route path="/courses" element={<Courses />} />
-
-        <Route path="/forgot-password" element={<Navigate to="/login" replace />} />
-        <Route path="/profile" element={<Navigate to="/settings" replace />} />
-        <Route path="/feedback" element={<Navigate to="/results" replace />} />
-        <Route path="/my-learning" element={<Navigate to="/courses" replace />} />
-
-        <Route path="/features" element={<Navigate to="/" replace />} />
-        <Route path="/pricing" element={<Navigate to="/" replace />} />
-        <Route path="/demo" element={<Navigate to="/signup" replace />} />
-        <Route path="/reviews" element={<Navigate to="/" replace />} />
-        <Route path="/blog" element={<Navigate to="/" replace />} />
-        <Route path="/guides" element={<Navigate to="/" replace />} />
-        <Route path="/webinars" element={<Navigate to="/" replace />} />
-        <Route path="/faq" element={<Navigate to="/" replace />} />
-        <Route path="/about" element={<Navigate to="/" replace />} />
-        <Route path="/careers" element={<Navigate to="/" replace />} />
-        <Route path="/contact" element={<Navigate to="/" replace />} />
-        <Route path="/press" element={<Navigate to="/" replace />} />
-        <Route path="/privacy" element={<Navigate to="/" replace />} />
-        <Route path="/terms" element={<Navigate to="/" replace />} />
-        <Route path="/security" element={<Navigate to="/" replace />} />
-        <Route path="/cookies" element={<Navigate to="/" replace />} />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/resume" element={<Resume />} />
       </Routes>
     </BrowserRouter>
   );
