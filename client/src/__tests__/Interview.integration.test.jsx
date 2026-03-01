@@ -20,6 +20,13 @@ const renderInterview = () =>
     </MemoryRouter>
   );
 
+const startFirstInterview = async () => {
+  await act(async () => {
+    fireEvent.click(screen.getAllByRole("button", { name: /start interview/i })[0]);
+    await Promise.resolve();
+  });
+};
+
 const createDeferred = () => {
   let resolve;
   let reject;
@@ -37,6 +44,7 @@ describe("Interview posture integration", () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    localStorage.clear();
     API.get.mockResolvedValue({ data: { user: null } });
     API.post.mockReset();
     now = 1700000000000;
@@ -85,11 +93,7 @@ describe("Interview posture integration", () => {
 
     const { container } = renderInterview();
 
-    fireEvent.click(screen.getAllByRole("button", { name: /start interview/i })[0]);
-
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await startFirstInterview();
 
     expect(screen.getByPlaceholderText(/type your response/i)).toBeInTheDocument();
 
@@ -149,11 +153,7 @@ describe("Interview posture integration", () => {
 
     const { container } = renderInterview();
 
-    fireEvent.click(screen.getAllByRole("button", { name: /start interview/i })[0]);
-
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await startFirstInterview();
 
     expect(screen.getByPlaceholderText(/type your response/i)).toBeInTheDocument();
 
@@ -177,5 +177,118 @@ describe("Interview posture integration", () => {
     );
     expect(speakingOrListening).toBeInTheDocument();
     expect(container.querySelector(".avatar-figure-wrapper.avatar-nodding")).not.toBeInTheDocument();
+  });
+
+  test("shows starting state and sends experimental prompt mode when feature flag is enabled", async () => {
+    localStorage.setItem("ff.experimentalPrompts", "true");
+    const startDeferred = createDeferred();
+
+    API.post.mockImplementation((url) => {
+      if (url === "/interview/start") {
+        return startDeferred.promise;
+      }
+      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+    });
+
+    renderInterview();
+
+    await startFirstInterview();
+
+    expect(screen.getAllByText(/starting your session…/i).length).toBeGreaterThan(0);
+
+    await waitFor(() => {
+      expect(API.post).toHaveBeenCalledWith(
+        "/interview/start",
+        expect.objectContaining({ promptMode: "experimental" })
+      );
+    });
+
+    await act(async () => {
+      startDeferred.resolve({ data: { message: "Welcome to the interview." } });
+      await Promise.resolve();
+    });
+
+    expect(screen.getByPlaceholderText(/type your response/i)).toBeInTheDocument();
+  });
+
+  test("requests and renders next question when Next Question button is clicked", async () => {
+    API.post.mockImplementation((url, payload) => {
+      if (url === "/interview/start") {
+        return Promise.resolve({ data: { message: "Welcome to the interview." } });
+      }
+
+      if (url === "/interview/chat" && /^next question please/i.test(payload?.message || "")) {
+        return Promise.resolve({
+          data: {
+            response: "Sure — let's continue. Explain a challenging project you delivered.",
+            isComplete: false
+          }
+        });
+      }
+
+      if (url === "/interview/analyze") {
+        return Promise.resolve({
+          data: {
+            grammarIssues: [],
+            improvements: [],
+            topics: ["Interview Communication Skills"],
+            stats: { score: 84, wordCount: 10, sentenceCount: 1, avgWordsPerSentence: 10 }
+          }
+        });
+      }
+
+      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+    });
+
+    renderInterview();
+
+    await startFirstInterview();
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /next question/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /next question/i }));
+
+    await waitFor(() => {
+      expect(API.post).toHaveBeenCalledWith(
+        "/interview/chat",
+        expect.objectContaining({ message: expect.stringMatching(/^next question please/i) })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/question 1\s*\/\s*5/i)).toBeInTheDocument();
+    });
+  });
+
+  test("shows no-person posture guidance without rendering a posture score", async () => {
+    const stopTrack = jest.fn();
+    const playSpy = jest.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    const FaceDetectorMock = jest.fn().mockImplementation(() => ({
+      detect: jest.fn().mockResolvedValue([])
+    }));
+
+    Object.defineProperty(window, "FaceDetector", {
+      value: FaceDetectorMock,
+      configurable: true
+    });
+
+    navigator.mediaDevices.getUserMedia.mockResolvedValue({
+      getTracks: () => [{ stop: stopTrack }]
+    });
+
+    renderInterview();
+
+    fireEvent.click(screen.getByRole("button", { name: /check my posture/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/no person detected/i)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/posture score:/i)).not.toBeInTheDocument();
+
+    playSpy.mockRestore();
+    delete window.FaceDetector;
   });
 });

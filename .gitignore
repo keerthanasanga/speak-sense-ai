@@ -30,6 +30,7 @@ server/dist/
 .env.production.local
 server/.env
 client/.env
+ai-service/.env
 *.pem
 *.key
 *.secret
@@ -72,6 +73,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
 .ipynb_checkpoints/
 venv/
 env/

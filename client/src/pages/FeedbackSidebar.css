@@ -87,6 +87,53 @@
     color: #475569;
 }
 
+.speech-metrics-card {
+    margin-bottom: 1rem;
+    padding: 0.85rem;
+    border-radius: 12px;
+    border: 1px solid rgba(16, 185, 129, 0.22);
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.speech-metrics-card h4 {
+    margin: 0 0 0.55rem;
+    font-size: 0.78rem;
+    color: #86efac;
+}
+
+.speech-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+    margin-bottom: 0.55rem;
+}
+
+.speech-metric-item {
+    background: rgba(2, 6, 23, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 9px;
+    padding: 0.42rem;
+    text-align: center;
+}
+
+.speech-metric-item span {
+    display: block;
+    color: #f8fafc;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.speech-metric-item small {
+    color: #94a3b8;
+    font-size: 0.62rem;
+}
+
+.speech-coach-tip {
+    color: #cbd5e1;
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
 /* Score ring */
 .feedback-score-wrap {
     display: flex;
@@ -256,6 +303,33 @@
 .feedback-empty p {
     font-size: 0.82rem;
     line-height: 1.5;
+}
+
+.feedback-error {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.1);
+    color: #fecaca;
+    font-size: 0.82rem;
+}
+
+.feedback-retry-btn {
+    align-self: flex-start;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.22);
+    color: #bfdbfe;
+    border-radius: 8px;
+    padding: 0.38rem 0.68rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.feedback-retry-btn:hover {
+    background: rgba(59, 130, 246, 0.3);
 }
 
 /* Good */

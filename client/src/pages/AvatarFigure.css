@@ -8,6 +8,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
+  transition: transform 0.28s ease, filter 0.28s ease;
 }
 
 .avatar-svg {
@@ -18,11 +19,50 @@
   transform-origin: bottom center;
 }
 
+.avatar-head {
+  transform-origin: 100px 150px;
+}
+
+.avatar-mouth,
+.avatar-jaw {
+  transform-origin: 100px 161px;
+}
+
+.avatar-eye-left,
+.avatar-iris-left,
+.avatar-pupil-left {
+  transform-origin: 82px 128px;
+}
+
+.avatar-eye-right,
+.avatar-iris-right,
+.avatar-pupil-right {
+  transform-origin: 118px 128px;
+}
+
+.avatar-left-arm {
+  transform-origin: 42px 195px;
+}
+
+.avatar-right-arm {
+  transform-origin: 158px 195px;
+}
+
 /* ====== POSTURE STATES ====== */
 
 /* Idle – gentle breathing sway */
 .avatar-idle .avatar-svg {
   animation: avatarBreathe 4s ease-in-out infinite;
+}
+
+.avatar-idle .avatar-head {
+  animation: headIdleSway 4s ease-in-out infinite;
+}
+
+.avatar-idle .avatar-eye,
+.avatar-idle .avatar-iris,
+.avatar-idle .avatar-pupil {
+  animation: eyeBlink 5.8s ease-in-out infinite;
 }
 
 /* Speaking – torso bob + jaw suggests talking */
@@ -33,6 +73,18 @@
   animation: mouthOpen 0.45s ease-in-out infinite;
 }
 
+.avatar-speaking .avatar-jaw {
+  animation: jawDrop 0.45s ease-in-out infinite;
+}
+
+.avatar-speaking .avatar-right-arm {
+  animation: speakingGesture 0.9s ease-in-out infinite;
+}
+
+.avatar-speaking .avatar-brow {
+  animation: browExpress 0.9s ease-in-out infinite;
+}
+
 /* Thinking – slight head tilt + hand to chin */
 .avatar-thinking .avatar-svg {
   animation: avatarThink 3s ease-in-out infinite;
@@ -41,15 +93,46 @@
   animation: armRaise 3s ease-in-out infinite;
 }
 
+.avatar-thinking .avatar-head {
+  animation: thinkHeadTilt 3s ease-in-out infinite;
+}
+
+.avatar-thinking .avatar-pupil-left,
+.avatar-thinking .avatar-pupil-right {
+  animation: lookAside 3s ease-in-out infinite;
+}
+
 /* Nodding */
 .avatar-nodding .avatar-head {
   animation: avatarNod 0.6s ease-in-out 3;
+}
+
+.avatar-nodding .avatar-svg {
+  animation: nodBodySettle 0.6s ease-in-out 3;
+}
+
+.avatar-nodding .avatar-right-arm {
+  animation: nodSupportGesture 0.6s ease-in-out 3;
 }
 
 /* Listening - subtle attentive sway */
 .avatar-listening .avatar-svg,
 .avatar-listening .animal-avatar {
   animation: avatarListen 2.2s ease-in-out infinite;
+}
+
+.avatar-listening .avatar-head {
+  animation: attentiveHead 2.2s ease-in-out infinite;
+}
+
+.avatar-listening .avatar-right-arm {
+  animation: listenHandSettle 2.2s ease-in-out infinite;
+}
+
+.avatar-listening .avatar-eye,
+.avatar-listening .avatar-iris,
+.avatar-listening .avatar-pupil {
+  animation: eyeBlink 6.2s ease-in-out infinite;
 }
 
 /* ====== KEYFRAMES ====== */
@@ -64,6 +147,15 @@
   }
   60% {
     transform: translateY(-2px) scale(1.003);
+  }
+}
+
+@keyframes headIdleSway {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-0.6deg) translateY(-1px);
   }
 }
 
@@ -89,6 +181,31 @@
   }
 }
 
+@keyframes attentiveHead {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  30% {
+    transform: rotate(-1.2deg) translateY(-1px);
+  }
+  60% {
+    transform: rotate(0.8deg) translateY(0);
+  }
+  78% {
+    transform: rotate(-0.5deg) translateY(0);
+  }
+}
+
+@keyframes listenHandSettle {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-3deg) translateY(-2px);
+  }
+}
+
 /* Mouth open on speaking */
 @keyframes mouthOpen {
   0%, 100% {
@@ -96,6 +213,41 @@
   }
   50% {
     transform: scaleY(1.6) translateY(2px);
+  }
+}
+
+@keyframes jawDrop {
+  0%,
+  100% {
+    transform: scaleY(1) translateY(0);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scaleY(1.4) translateY(2px);
+    opacity: 0.35;
+  }
+}
+
+@keyframes speakingGesture {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  35% {
+    transform: rotate(-8deg) translateY(-5px);
+  }
+  65% {
+    transform: rotate(4deg) translateY(-2px);
+  }
+}
+
+@keyframes browExpress {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
   }
 }
 
@@ -112,6 +264,19 @@
   }
 }
 
+@keyframes thinkHeadTilt {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  30% {
+    transform: rotate(-2.2deg) translateY(-2px);
+  }
+  70% {
+    transform: rotate(1deg) translateY(-1px);
+  }
+}
+
 /* Arm raise for thinking posture */
 @keyframes armRaise {
   0%, 100% {
@@ -119,6 +284,19 @@
   }
   40% {
     transform: rotate(-15deg) translateX(-5px) translateY(-8px);
+  }
+}
+
+@keyframes lookAside {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  35% {
+    transform: translateX(-1.2px);
+  }
+  65% {
+    transform: translateX(0.8px);
   }
 }
 
@@ -132,6 +310,44 @@
   }
   60% {
     transform: rotate(-2deg) translateY(-2px);
+  }
+}
+
+@keyframes nodBodySettle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(2px);
+  }
+  60% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes nodSupportGesture {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  35% {
+    transform: rotate(-6deg) translateY(-3px);
+  }
+  65% {
+    transform: rotate(3deg) translateY(-1px);
+  }
+}
+
+@keyframes eyeBlink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  94%,
+  96% {
+    transform: scaleY(0.14);
   }
 }
 
@@ -184,11 +400,93 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
+  position: relative;
+  transform-origin: bottom center;
+}
+
+.animal-aura {
+  position: absolute;
+  inset: auto 14px 18px;
+  height: 56px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(79, 158, 255, 0.22) 0%, transparent 72%);
+}
+
+.animal-ears {
+  position: absolute;
+  top: 8px;
+  width: 84px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.animal-ear {
+  width: 20px;
+  height: 18px;
+  border-radius: 65% 65% 42% 42%;
+  background: rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transform-origin: bottom center;
+}
+
+.animal-face {
+  position: absolute;
+  top: 50px;
+  width: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.animal-eye {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+}
+
+.animal-eye .pupil {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #111;
+}
+
+.animal-mouth {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  width: 18px;
+  height: 8px;
+  transform: translateX(-50%);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.82);
+  border-radius: 0 0 18px 18px;
 }
 
 .animal-emoji {
   font-size: 3.2rem;
   filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
+  transform-origin: bottom center;
+}
+
+.animal-tail {
+  position: absolute;
+  right: 18px;
+  bottom: 42px;
+  width: 20px;
+  height: 40px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.34);
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+  transform-origin: bottom left;
 }
 
 .animal-nameplate {
@@ -196,6 +494,404 @@
   font-weight: 600;
   color: #dbeafe;
   letter-spacing: 0.02em;
+}
+
+.avatar-idle .animal-avatar {
+  animation: animalIdleFloat 3.1s ease-in-out infinite;
+}
+
+.avatar-idle .animal-eye {
+  animation: animalBlink 5.4s ease-in-out infinite;
+}
+
+.avatar-speaking .animal-avatar {
+  animation: animalSpeakBounce 0.58s ease-in-out infinite;
+}
+
+.avatar-speaking .animal-mouth {
+  animation: animalMouthTalk 0.42s ease-in-out infinite;
+}
+
+.avatar-speaking .animal-tail {
+  animation: animalTailWag 0.65s ease-in-out infinite;
+}
+
+.avatar-speaking .animal-ear {
+  animation: animalEarReact 0.65s ease-in-out infinite;
+}
+
+.avatar-thinking .animal-avatar {
+  animation: animalThinkLean 2.8s ease-in-out infinite;
+}
+
+.avatar-thinking .animal-eye .pupil {
+  animation: animalLookAround 2.8s ease-in-out infinite;
+}
+
+.avatar-thinking .animal-tail {
+  animation: animalTailThink 1.5s ease-in-out infinite;
+}
+
+.avatar-nodding .animal-avatar {
+  animation: animalNod 0.62s ease-in-out 3;
+}
+
+.avatar-listening .animal-eye {
+  animation: animalBlink 6.1s ease-in-out infinite;
+}
+
+.avatar-listening .animal-ear {
+  animation: animalEarListen 2.2s ease-in-out infinite;
+}
+
+/* ====== ANIMAL PERSONALITY OVERRIDES ====== */
+
+/* Owl - calm: slower, steadier motion */
+.animal-personality-calm.avatar-idle .animal-avatar {
+  animation: animalIdleCalm 4.6s ease-in-out infinite;
+}
+
+.animal-personality-calm.avatar-speaking .animal-avatar {
+  animation: animalSpeakCalm 0.95s ease-in-out infinite;
+}
+
+.animal-personality-calm.avatar-speaking .animal-tail {
+  animation: animalTailCalm 1.1s ease-in-out infinite;
+}
+
+.animal-personality-calm.avatar-thinking .animal-avatar {
+  animation: animalThinkCalm 3.2s ease-in-out infinite;
+}
+
+.animal-personality-calm.avatar-listening .animal-ear {
+  animation: animalEarCalm 2.8s ease-in-out infinite;
+}
+
+/* Fox - energetic: fast and expressive */
+.animal-personality-energetic.avatar-idle .animal-avatar {
+  animation: animalIdleEnergetic 2.5s ease-in-out infinite;
+}
+
+.animal-personality-energetic.avatar-speaking .animal-avatar {
+  animation: animalSpeakEnergetic 0.42s ease-in-out infinite;
+}
+
+.animal-personality-energetic.avatar-speaking .animal-tail {
+  animation: animalTailEnergetic 0.38s linear infinite;
+}
+
+.animal-personality-energetic.avatar-thinking .animal-eye .pupil {
+  animation: animalLookEnergetic 1.5s ease-in-out infinite;
+}
+
+.animal-personality-energetic.avatar-listening .animal-ear {
+  animation: animalEarEnergetic 1s ease-in-out infinite;
+}
+
+/* Panda - gentle: soft and rounded motion */
+.animal-personality-gentle.avatar-idle .animal-avatar {
+  animation: animalIdleGentle 3.8s ease-in-out infinite;
+}
+
+.animal-personality-gentle.avatar-speaking .animal-avatar {
+  animation: animalSpeakGentle 0.8s ease-in-out infinite;
+}
+
+.animal-personality-gentle.avatar-speaking .animal-mouth {
+  animation: animalMouthGentle 0.7s ease-in-out infinite;
+}
+
+.animal-personality-gentle.avatar-thinking .animal-avatar {
+  animation: animalThinkGentle 3.3s ease-in-out infinite;
+}
+
+.animal-personality-gentle.avatar-listening .animal-ear {
+  animation: animalEarGentle 2.7s ease-in-out infinite;
+}
+
+@keyframes animalIdleFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(-0.4deg);
+  }
+}
+
+@keyframes animalSpeakBounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.015);
+  }
+}
+
+@keyframes animalMouthTalk {
+  0%,
+  100% {
+    height: 8px;
+    border-radius: 0 0 18px 18px;
+  }
+  50% {
+    height: 12px;
+    border-radius: 4px 4px 18px 18px;
+  }
+}
+
+@keyframes animalTailWag {
+  0%,
+  100% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(-15deg);
+  }
+}
+
+@keyframes animalEarReact {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes animalThinkLean {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-2px) rotate(-2deg);
+  }
+  70% {
+    transform: translateY(-1px) rotate(1deg);
+  }
+}
+
+@keyframes animalLookAround {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-1px);
+  }
+  65% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes animalTailThink {
+  0%,
+  100% {
+    transform: rotate(6deg);
+  }
+  50% {
+    transform: rotate(-6deg);
+  }
+}
+
+@keyframes animalNod {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(3px) rotate(1.5deg);
+  }
+  65% {
+    transform: translateY(-1px) rotate(-0.8deg);
+  }
+}
+
+@keyframes animalBlink {
+  0%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+  93%,
+  96% {
+    transform: scaleY(0.12);
+  }
+}
+
+@keyframes animalEarListen {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes animalIdleCalm {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(-0.25deg);
+  }
+}
+
+@keyframes animalSpeakCalm {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.01);
+  }
+}
+
+@keyframes animalTailCalm {
+  0%,
+  100% {
+    transform: rotate(8deg);
+  }
+  50% {
+    transform: rotate(-8deg);
+  }
+}
+
+@keyframes animalThinkCalm {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-1px) rotate(-1.2deg);
+  }
+}
+
+@keyframes animalEarCalm {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes animalIdleEnergetic {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+  70% {
+    transform: translateY(-2px) rotate(1deg);
+  }
+}
+
+@keyframes animalSpeakEnergetic {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.03);
+  }
+}
+
+@keyframes animalTailEnergetic {
+  0%,
+  100% {
+    transform: rotate(20deg);
+  }
+  50% {
+    transform: rotate(-20deg);
+  }
+}
+
+@keyframes animalLookEnergetic {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-1.4px);
+  }
+  60% {
+    transform: translateX(1.4px);
+  }
+}
+
+@keyframes animalEarEnergetic {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(8deg);
+  }
+  80% {
+    transform: rotate(-5deg);
+  }
+}
+
+@keyframes animalIdleGentle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2.5px) rotate(-0.35deg);
+  }
+}
+
+@keyframes animalSpeakGentle {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1.5px) scale(1.012);
+  }
+}
+
+@keyframes animalMouthGentle {
+  0%,
+  100% {
+    height: 8px;
+  }
+  50% {
+    height: 10px;
+  }
+}
+
+@keyframes animalThinkGentle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  40% {
+    transform: translateY(-1.5px) rotate(-1.4deg);
+  }
+  70% {
+    transform: translateY(-0.8px) rotate(0.8deg);
+  }
+}
+
+@keyframes animalEarGentle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
 }
 
 /* ====== LIVE INTERVIEW PANEL ====== */
@@ -267,6 +963,30 @@
 .ai-panel-status span:last-child {
   font-size: 0.8rem;
   color: #99aacc;
+}
+
+.voice-toggle-btn {
+  margin-top: 0.55rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 200, 255, 0.3);
+  background: rgba(0, 100, 200, 0.2);
+  color: #dbeafe;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voice-toggle-btn:hover {
+  background: rgba(0, 140, 220, 0.3);
+  border-color: rgba(0, 200, 255, 0.45);
+}
+
+.voice-toggle-btn[aria-pressed="false"] {
+  background: rgba(15, 23, 42, 0.75);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: #94a3b8;
 }
 
 /* ====== BACKGROUND SCENE for avatar panel ====== */
