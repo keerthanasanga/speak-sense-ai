@@ -79,13 +79,15 @@ describe("AvatarFigure posture", () => {
       <AvatarFigure avatar={foxAvatar} isSpeaking={false} posture="idle" />
     );
 
+    // Verify fox avatar renders
+    expect(screen.getByLabelText(/rex/i)).toBeInTheDocument();
     // TODO: Animal personality classes not yet implemented
     // expect(container.querySelector(".avatar-game-wrapper.animal-personality-energetic")).toBeInTheDocument();
 
     rerender(<AvatarFigure avatar={pandaAvatar} isSpeaking={false} posture="idle" />);
     // expect(container.querySelector(".avatar-game-wrapper.animal-personality-calm")).toBeInTheDocument();
     
-    // Just verify the avatar renders for now
-    expect(screen.getByLabelText(/luna|max/i)).toBeInTheDocument();
+    // Verify panda avatar renders after rerender
+    expect(screen.getByLabelText(/coco/i)).toBeInTheDocument();
   });
 });
