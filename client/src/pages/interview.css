@@ -249,6 +249,60 @@ body {
   border: 1px solid var(--color-border-light);
 }
 
+/* Interview Session Header */
+.interview-session > .interview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.2rem;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(30, 58, 138, 0.25) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+  margin-bottom: 1.2rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.interview-title {
+  color: #f1f5f9;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.toggle-details-btn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 8px;
+  color: #7dd3fc;
+  cursor: pointer;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.toggle-details-btn-header:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.toggle-details-btn-header:active {
+  transform: translateY(0);
+}
+
+.toggle-icon {
+  display: inline-block;
+  min-width: 18px;
+  text-align: center;
+}
+
 .timer-icon {
   font-size: 1.2rem;
 }
@@ -794,16 +848,18 @@ body {
   overflow: hidden;
   border: 1px solid rgba(0, 100, 200, 0.3);
   min-height: 240px;
-  max-height: 360px;
+  max-height: 380px;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* PiP self camera (WhatsApp/Meet style) */
 .video-container-user.pip-camera {
   position: absolute;
-  right: var(--spacing-md);
-  bottom: var(--spacing-md);
-  width: 260px;
-  height: 160px;
+  right: 1rem;
+  bottom: 1rem;
+  width: 240px;
+  height: 150px;
   border-radius: var(--radius-md);
   border: 3px solid rgba(125, 211, 252, 0.6);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
@@ -815,21 +871,30 @@ body {
   pointer-events: auto;
 }
 
-@media (max-width: 968px) {
+@media (max-width: 1024px) {
   .video-container-user.pip-camera {
     width: 200px;
-    height: 125px;
+    height: 130px;
     right: 0.8rem;
     bottom: 0.8rem;
   }
 }
 
+@media (max-width: 768px) {
+  .video-container-user.pip-camera {
+    width: 160px;
+    height: 100px;
+    right: 0.6rem;
+    bottom: 0.6rem;
+  }
+}
+
 @media (max-width: 576px) {
   .video-container-user.pip-camera {
-    width: 150px;
-    height: 94px;
-    right: 0.5rem;
-    bottom: 0.5rem;
+    width: 120px;
+    height: 75px;
+    right: 0.4rem;
+    bottom: 0.4rem;
   }
 }
 
@@ -1319,36 +1384,7 @@ video.video-off {
 
 /* Interview Details Toggle */
 .interview-info-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.62rem;
-}
-
-.interview-info-header h3 {
-  margin-bottom: 0;
-}
-
-.toggle-details-btn {
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 6px;
-  color: #7dd3fc;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.35rem 0.6rem;
-  transition: all 0.2s ease;
-  line-height: 1;
-}
-
-.toggle-details-btn:hover {
-  background: rgba(59, 130, 246, 0.25);
-  border-color: rgba(59, 130, 246, 0.5);
-  transform: scale(1.05);
-}
-
-.toggle-details-btn:active {
-  transform: scale(0.95);
+  display: none;
 }
 
 .progress-head-row {

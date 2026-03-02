@@ -2172,6 +2172,23 @@ export default function Interview() {
                 Starting your session…
               </p>
             )}
+            
+            {/* Interview Header with Details Toggle */}
+            <div className="interview-header">
+              <h2 className="interview-title">{selectedAvatar?.name} Interview</h2>
+              <button
+                type="button"
+                className="toggle-details-btn-header"
+                onClick={() => setDetailsOpen(!detailsOpen)}
+                aria-label={detailsOpen ? "Collapse interview details" : "Expand interview details"}
+                aria-expanded={detailsOpen}
+                title="Toggle interview details"
+              >
+                <span className="toggle-icon">{detailsOpen ? '▼' : '▶'}</span>
+                <span className="toggle-text">Details</span>
+              </button>
+            </div>
+            
             <div className="interview-main">
               {/* Left: AI avatar panel + user video */}
               <div className="interview-area">
