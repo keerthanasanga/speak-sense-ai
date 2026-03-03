@@ -4,17 +4,17 @@ import API from "../services/api";
 import { getFeatureFlags } from "../config/featureFlags";
 import { formatTime, deriveSpeechTip } from "../utils/interviewUtils";
 import { getAuthToken, getStoredUser, saveStoredUser } from "../utils/authStorage";
-import { avatarCatalog, getFilteredAvatars } from "../data/avatars";
-import AvatarFigure from "./AvatarFigure";
+import { characterCatalog, getFilteredCharacters } from "../data/characters";
+import SilentErrorBoundary from "../SilentErrorBoundary";
 import FeedbackSidebar from "./FeedbackSidebar";
 import PostureChecker from "./PostureChecker";
-import SilentErrorBoundary from "../SilentErrorBoundary";
+import InterviewScene3D from "../components/Interview3D/InterviewScene3D";
+import InterviewHUD from "../components/Interview3D/InterviewHUD";
 import "./interview.css";
-import "./AvatarFigure.css";
 
-const AVATAR_PACK_STORAGE_KEY = "avatarPackStyle";
+const AVATAR_PACK_STORAGE_KEY = "characterPackStyle";
 
-const normalizeAvatarPackStyle = (rawStyle) => {
+const normalizeCharacterPackStyle = (rawStyle) => {
   if (rawStyle === "illustrated" || rawStyle === "emoji") {
     return rawStyle;
   }
@@ -290,8 +290,8 @@ export default function Interview() {
     if (!state || typeof state !== "object") return {};
     return state;
   }, [location.state]);
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
-  const [showAvatarSelect, setShowAvatarSelect] = useState(true);
+  const [selectedCharacter, setSelectedCharacter] = useState(null);
+  const [showCharacterSelect, setShowCharacterSelect] = useState(true);
   const [useChat, setUseChat] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -314,26 +314,27 @@ export default function Interview() {
       return true;
     }
   });
-  const [avatarPackStyle, setAvatarPackStyle] = useState(() => {
+  const [characterPackStyle, setCharacterPackStyle] = useState(() => {
     try {
-      return normalizeAvatarPackStyle(localStorage.getItem(AVATAR_PACK_STORAGE_KEY));
+      return normalizeCharacterPackStyle(localStorage.getItem(AVATAR_PACK_STORAGE_KEY));
     } catch {
       return "illustrated";
     }
   });
 
-  const currentAvatarPackLabel =
-    avatarPackStyle === "illustrated"
-      ? "Game Avatar"
-      : avatarPackStyle === "emoji"
+  const currentCharacterPackLabel =
+    characterPackStyle === "illustrated"
+      ? "Game Character"
+      : characterPackStyle === "emoji"
         ? "Emoji"
-        : "Game Avatar";
+        : "Game Character";
   const [isStartingInterview, setIsStartingInterview] = useState(false);
   const [startError, setStartError] = useState("");
   const [chatError, setChatError] = useState("");
   const [isListeningUser, setIsListeningUser] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [speechMetrics, setSpeechMetrics] = useState(null);
+  const [confidenceScore, setConfidenceScore] = useState(0); // value 0-1 used by 3D characters
   const [sessionAnalyses, setSessionAnalyses] = useState([]);
   const [latestVerification, setLatestVerification] = useState(null);
   const [analysisTrigger, setAnalysisTrigger] = useState(0);
@@ -379,12 +380,14 @@ export default function Interview() {
     }
   });
 
-  // Avatar posture state
-  const [avatarPosture, setAvatarPosture] = useState("idle");
+  // Character posture state
+  const [characterPosture, setCharacterPosture] = useState("idle");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [use3DScene, setUse3DScene] = useState(true); // Enable 3D scene by default
+  const isPaused = useChat || isVideoOff;
   // Hover preview posture
-  const [hoveredAvatarId, setHoveredAvatarId] = useState(null);
+  const [hoveredCharacterId, setHoveredCharacterId] = useState(null);
   // Feedback sidebar
   const [feedbackOpen, setFeedbackOpen] = useState(true);
   const [lastUserMessage, setLastUserMessage] = useState('');
@@ -396,9 +399,10 @@ export default function Interview() {
     }
   });
   const [interviewConfig, setInterviewConfig] = useState(() => {
-    const selectedRole = planningSelections.role;
-    const selectedDifficulty = planningSelections.difficulty?.name;
-    const selectedType = planningSelections.type?.name;
+    const selectedRole = planningSelections.role || "Software Engineer";
+    const selectedDomain = planningSelections.domain?.name || "Software Development";
+    const selectedDifficulty = planningSelections.difficulty?.name || "Intermediate";
+    const selectedType = planningSelections.type?.name || "Mixed";
 
     const difficultyMap = {
       Beginner: "beginner",
@@ -425,7 +429,7 @@ export default function Interview() {
   });
 
   const videoRef = useRef(null);
-  const avatarModuleFrameRef = useRef(null);
+  const characterModuleFrameRef = useRef(null);
   const postureVideoRef = useRef(null);
   const postureStreamRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -508,9 +512,9 @@ export default function Interview() {
   const selectedDomainName = planningSelections.domain?.name || "";
   const selectedDifficultyName = planningSelections.difficulty?.name || "";
   const selectedInterviewTypeName = planningSelections.type?.name || "";
-  const embeddedAvatarRole = useMemo(() => {
+  const embeddedCharacterRole = useMemo(() => {
     const mode = String(interviewConfig.mode || "").toLowerCase();
-    const roleText = String(selectedAvatar?.role || "").toLowerCase();
+    const roleText = String(selectedCharacter?.role || "").toLowerCase();
 
     if (mode.includes("behavioral")) return "behavioral";
     if (mode.includes("system")) return "system-design";
@@ -520,7 +524,7 @@ export default function Interview() {
     if (/(behavior|communication|culture|people)/i.test(roleText)) return "behavioral";
 
     return "hr";
-  }, [interviewConfig.mode, selectedAvatar?.role]);
+  }, [interviewConfig.mode, selectedCharacter?.role]);
 
   const stopPostureStream = useCallback(() => {
     if (postureStreamRef.current) {
@@ -588,25 +592,25 @@ export default function Interview() {
       horizontalBalance,
       topRatio,
       bottomRatio,
-      hasDetail: edgeSum / pixelCount > 12,
+      hasDetail: edgeSum / pixelCount > 5, // Lowered from 12 to 5 to be more forgiving of webcams
     };
   }, []);
 
-  const getVoiceProfile = useCallback((avatar) => {
-    const isAnimalAvatar = avatar?.species === "animal";
+  const getVoiceProfile = useCallback((character) => {
+    const isAnimalCharacter = character?.species === "animal";
 
-    if (isAnimalAvatar) {
+    if (isAnimalCharacter) {
       return { rate: 1.04, pitch: 1.2 };
     }
 
-    if (avatar?.gender === "female") {
+    if (character?.gender === "female") {
       return { rate: 1.0, pitch: 1.12 };
     }
 
     return { rate: 0.97, pitch: 0.95 };
   }, []);
 
-  const selectBestVoice = useCallback((avatar) => {
+  const selectBestVoice = useCallback((character) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       return null;
     }
@@ -614,8 +618,8 @@ export default function Interview() {
     const voices = window.speechSynthesis.getVoices();
     if (!voices.length) return null;
 
-    const lowerName = (avatar?.name || "").toLowerCase();
-    const preferredFemale = avatar?.gender === "female";
+    const lowerName = (character?.name || "").toLowerCase();
+    const preferredFemale = character?.gender === "female";
 
     const byName = voices.find((voice) => voice.name.toLowerCase().includes(lowerName));
     if (byName) return byName;
@@ -631,15 +635,15 @@ export default function Interview() {
     return voices.find((voice) => /en/i.test(voice.lang)) || voices[0];
   }, []);
 
-  const speakAiMessage = useCallback((text, avatar) => {
+  const speakAiMessage = useCallback((text, character) => {
     if (!aiVoiceEnabled || !text?.trim()) return;
     if (isListeningUser) return;
     if (typeof window === "undefined") return;
     if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return;
 
     const utterance = new SpeechSynthesisUtterance(text);
-    const selectedVoice = selectBestVoice(avatar);
-    const profile = getVoiceProfile(avatar);
+    const selectedVoice = selectBestVoice(character);
+    const profile = getVoiceProfile(character);
 
     utterance.voice = selectedVoice;
     utterance.lang = selectedVoice?.lang || "en-US";
@@ -651,26 +655,26 @@ export default function Interview() {
     window.speechSynthesis.speak(utterance);
   }, [aiVoiceEnabled, getVoiceProfile, isListeningUser, selectBestVoice]);
 
-  const avatars = useMemo(
-    () => getFilteredAvatars(avatarCatalog, userProfile?.industry),
+  const characters = useMemo(
+    () => getFilteredCharacters(characterCatalog, userProfile?.industry),
     [userProfile]
   );
 
-  const renderAvatarChip = useCallback((avatar, className, sizeClass = "") => {
-    if (avatarPackStyle === "photo" && avatar?.image) {
+  const renderCharacterChip = useCallback((character, className, sizeClass = "") => {
+    if (characterPackStyle === "photo" && character?.image) {
       return (
         <img
-          src={avatar.image}
-          alt={`${avatar.name} profile`}
+          src={character.image}
+          alt={`${character.name} profile`}
           className={`${className} ${sizeClass}`.trim()}
           loading="lazy"
         />
       );
     }
 
-    if (avatarPackStyle === "illustrated") {
+    if (characterPackStyle === "illustrated") {
       return (
-        <span className={`${className} avatar-illustrated-chip ${sizeClass}`.trim()} aria-hidden="true">
+        <span className={`${className} character-illustrated-chip ${sizeClass}`.trim()} aria-hidden="true">
           🎨
         </span>
       );
@@ -678,80 +682,79 @@ export default function Interview() {
 
     return (
       <span className={className} aria-hidden="true">
-        {avatar?.avatar || "🧑‍💼"}
+        {character?.character || "🧑‍💼"}
       </span>
     );
-  }, [avatarPackStyle]);
+  }, [characterPackStyle]);
 
-  const renderAvatarPreview = useCallback((avatar) => {
-    if (avatarPackStyle === "photo" && avatar?.image) {
+  const renderCharacterPreview = useCallback((character) => {
+    if (characterPackStyle === "photo" && character?.image) {
       return (
         <img
-          src={avatar.image}
-          alt={`${avatar.name} avatar`}
-          className="avatar-photo"
+          src={character.image}
+          alt={`${character.name} character`}
+          className="character-photo"
           loading="lazy"
         />
       );
     }
 
-    if (avatarPackStyle === "emoji") {
+    if (characterPackStyle === "illustrated") {
       return (
-        <span className="avatar-emoji-preview" aria-hidden="true">
-          {avatar?.avatar || "🧑‍💼"}
+        <span className="character-emoji-preview" aria-hidden="true">
+          {character?.avatar || "🎮"}
         </span>
       );
     }
 
     return (
-      <AvatarFigure
-        avatar={avatar}
-        isSpeaking={hoveredAvatarId === avatar?.id}
-        posture={hoveredAvatarId === avatar?.id ? "speaking" : "idle"}
-      />
+      <span className="character-emoji-preview" aria-hidden="true">
+        {character?.avatar || character?.character || "🧑‍💼"}
+      </span>
     );
-  }, [avatarPackStyle, hoveredAvatarId]);
+  }, [characterPackStyle, hoveredCharacterId]);
 
-  const renderInterviewerPanelAvatar = useCallback(() => {
-    if (!selectedAvatar) return null;
+  const renderInterviewerPanelCharacter = useCallback(() => {
+    if (!selectedCharacter) return null;
 
-    const canUseEmbeddedIframe = avatarPackStyle === "illustrated"
+    // prefer the standalone avatar system (iframe) when 3D is requested
+    const canUseEmbeddedIframe = use3DScene && characterPackStyle === "illustrated"
       && !(typeof process !== "undefined" && process.env?.NODE_ENV === "test");
 
     if (canUseEmbeddedIframe) {
       return (
         <iframe
-          ref={avatarModuleFrameRef}
-          key={`${selectedAvatar?.id}-${embeddedAvatarRole}`}
-          title={`${selectedAvatar.name} 3D interviewer`}
-          src={`/avatar-system/index.html?embed=1&role=${encodeURIComponent(embeddedAvatarRole)}`}
+          ref={characterModuleFrameRef}
+          key={`${selectedCharacter?.id}-${embeddedCharacterRole}`}
+          title={`${selectedCharacter.name} 3D interviewer`}
+          src={`/character-system/index.html?embed=1&role=${encodeURIComponent(embeddedCharacterRole)}`}
           className="ai-panel-3d-frame"
         />
       );
     }
 
-    if (avatarPackStyle === "photo" && selectedAvatar.image) {
-      return (
-        <img
-          src={selectedAvatar.image}
-          alt={`${selectedAvatar.name} avatar`}
-          className="ai-panel-photo"
-          loading="lazy"
+    return (
+      <SilentErrorBoundary
+        fallback={
+          <div className="ai-panel-photo">3D Avatar failed to load.</div>
+        }
+      >
+        <InterviewScene3D
+          selectedCharacter={selectedCharacter}
+          characterState={{
+            speaking: isSpeaking,
+            thinking: isAiTyping,
+            posture: characterPosture
+          }}
+          confidenceScore={speechMetrics?.confidence || 0}
+          speechMetrics={speechMetrics}
+          onCharacterReady={() => {
+            // Character model loaded successfully
+          }}
         />
-      );
-    }
-
-    if (avatarPackStyle === "emoji") {
-      return (
-        <div className="ai-panel-emoji" aria-hidden="true">
-          {selectedAvatar.avatar || "🧑‍💼"}
-        </div>
-      );
-    }
-
-    // Default: Use animated AvatarFigure for all other cases
-    return <AvatarFigure avatar={selectedAvatar} isSpeaking={isSpeaking} posture={avatarPosture} />;
-  }, [avatarPackStyle, avatarPosture, embeddedAvatarRole, isSpeaking, selectedAvatar]);
+      </SilentErrorBoundary>
+    );
+  }, [characterPackStyle, characterPosture, embeddedCharacterRole, isSpeaking, selectedCharacter, speechMetrics, isAiTyping, use3DScene]);
 
   const latestAiMessage = useMemo(
     () => messages.filter((m) => m.sender === "ai").slice(-1)[0]?.message || "",
@@ -771,51 +774,51 @@ export default function Interview() {
           setUserProfile(res.data.user);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
-    const syncAvatarPackFromStorage = () => {
+    const syncCharacterPackFromStorage = () => {
       try {
-        setAvatarPackStyle(normalizeAvatarPackStyle(localStorage.getItem(AVATAR_PACK_STORAGE_KEY)));
+        setCharacterPackStyle(normalizeCharacterPackStyle(localStorage.getItem(AVATAR_PACK_STORAGE_KEY)));
       } catch {
-        setAvatarPackStyle("illustrated");
+        setCharacterPackStyle("illustrated");
       }
     };
 
-    syncAvatarPackFromStorage();
-    window.addEventListener("storage", syncAvatarPackFromStorage);
+    syncCharacterPackFromStorage();
+    window.addEventListener("storage", syncCharacterPackFromStorage);
 
     return () => {
-      window.removeEventListener("storage", syncAvatarPackFromStorage);
+      window.removeEventListener("storage", syncCharacterPackFromStorage);
     };
   }, []);
 
   useEffect(() => {
-    if (avatarPackStyle !== "illustrated") return;
-    const frameWindow = avatarModuleFrameRef.current?.contentWindow;
+    if (characterPackStyle !== "illustrated") return;
+    const frameWindow = characterModuleFrameRef.current?.contentWindow;
     if (!frameWindow) return;
 
-    frameWindow.postMessage({ type: "SET_ROLE", role: embeddedAvatarRole }, "*");
-  }, [avatarPackStyle, embeddedAvatarRole]);
+    frameWindow.postMessage({ type: "SET_ROLE", role: embeddedCharacterRole }, "*");
+  }, [characterPackStyle, embeddedCharacterRole]);
 
   useEffect(() => {
-    if (avatarPackStyle !== "illustrated") return;
-    const frameWindow = avatarModuleFrameRef.current?.contentWindow;
+    if (characterPackStyle !== "illustrated") return;
+    const frameWindow = characterModuleFrameRef.current?.contentWindow;
     if (!frameWindow) return;
 
-    const emotion = isAiTyping || avatarPosture === "thinking"
+    const emotion = isAiTyping || characterPosture === "thinking"
       ? "strict"
-      : avatarPosture === "nodding"
+      : characterPosture === "nodding"
         ? "impressed"
         : isSpeaking
           ? "friendly"
           : "neutral";
 
     frameWindow.postMessage({ type: "SET_EMOTION", emotion }, "*");
-  }, [avatarPackStyle, avatarPosture, isAiTyping, isSpeaking]);
+  }, [characterPackStyle, characterPosture, isAiTyping, isSpeaking]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return undefined;
@@ -877,7 +880,7 @@ export default function Interview() {
   }), []);
 
   useEffect(() => {
-    if (!showAvatarSelect) return;
+    if (!showCharacterSelect) return;
     if (!planningSelections || Object.keys(planningSelections).length === 0) return;
 
     const selectedRole = planningSelections.role;
@@ -905,7 +908,7 @@ export default function Interview() {
       questionCount: selectedType === "Mixed" ? 7 : prev.questionCount,
       targetRole: selectedRole || prev.targetRole,
     }));
-  }, [planningSelections, showAvatarSelect]);
+  }, [planningSelections, showCharacterSelect]);
 
   useEffect(() => {
     return () => {
@@ -948,18 +951,33 @@ export default function Interview() {
   // ---- Posture helpers ----
   // Trigger "AI is speaking" animation for given duration (ms)
   const triggerSpeak = useCallback((durationMs = 3000) => {
-    setAvatarPosture("speaking");
+    if (speakTimerRef.current) clearTimeout(speakTimerRef.current);
     setIsSpeaking(true);
-    clearTimeout(speakTimerRef.current);
+    setCharacterPosture("speaking");
+
+    const actualDuration = Math.max(2000, Math.min(Number(durationMs) || 3000, 12000));
     speakTimerRef.current = setTimeout(() => {
       setIsSpeaking(false);
-      setAvatarPosture("listening");
-    }, durationMs);
+      setCharacterPosture("listening");
+      speakTimerRef.current = null;
+    }, actualDuration);
   }, []);
 
   const triggerThinking = useCallback(() => {
-    setAvatarPosture("thinking");
+    if (speakTimerRef.current) clearTimeout(speakTimerRef.current);
+    setCharacterPosture("thinking");
     setIsSpeaking(false);
+    speakTimerRef.current = null;
+  }, []);
+
+  const triggerNod = useCallback(() => {
+    if (speakTimerRef.current) clearTimeout(speakTimerRef.current);
+    setCharacterPosture("nodding");
+    setIsSpeaking(false);
+    speakTimerRef.current = setTimeout(() => {
+      setCharacterPosture("listening");
+      speakTimerRef.current = null;
+    }, 1800);
   }, []);
 
   const appendSessionAnalysis = useCallback((entry) => {
@@ -982,10 +1000,7 @@ export default function Interview() {
     });
   }, []);
 
-  const triggerNod = useCallback(() => {
-    setAvatarPosture("nodding");
-    setTimeout(() => setAvatarPosture("listening"), 2000);
-  }, []);
+
 
   // Request camera/mic
   const requestPermissions = async () => {
@@ -1019,18 +1034,18 @@ export default function Interview() {
   };
 
   // Start interview
-  const startInterview = async (avatar) => {
+  const startInterview = async (character) => {
     if (isStartingInterview || startInterviewLockRef.current) return;
 
-    const safeAvatar = avatar || avatars[0] || null;
-    if (!safeAvatar) {
+    const safeCharacter = character || characters[0] || null;
+    if (!safeCharacter) {
       setStartError("No interviewers are available right now. Please refresh and try again.");
       return;
     }
 
     startInterviewLockRef.current = true;
-    const interviewerName = String(safeAvatar?.name || "Interviewer").trim() || "Interviewer";
-    const interviewerRole = String(safeAvatar?.role || "AI Interview Coach").trim() || "AI Interview Coach";
+    const interviewerName = String(safeCharacter?.name || "Interviewer").trim() || "Interviewer";
+    const interviewerRole = String(safeCharacter?.role || "AI Interview Coach").trim() || "AI Interview Coach";
 
     setStartError("");
     setChatError("");
@@ -1052,8 +1067,8 @@ export default function Interview() {
     setIsStartingInterview(true);
 
     try {
-      setSelectedAvatar(safeAvatar);
-      setShowAvatarSelect(false);
+      setSelectedCharacter(safeCharacter);
+      setShowCharacterSelect(false);
 
       const hasMediaAccess = await requestPermissions();
       if (!hasMediaAccess) {
@@ -1064,7 +1079,7 @@ export default function Interview() {
 
       try {
         const response = await API.post("/interview/start", {
-          avatar: { name: interviewerName },
+          character: { name: interviewerName },
           role: interviewerRole,
           config: interviewConfig,
           selections: planningSelections,
@@ -1073,7 +1088,7 @@ export default function Interview() {
         });
         const greeting = response.data.message || `Hello! I'm ${interviewerName}, your ${interviewerRole}. Let's begin. Please introduce yourself.`;
         setMessages([createMessage("ai", greeting)]);
-        speakAiMessage(greeting, safeAvatar);
+        speakAiMessage(greeting, safeCharacter);
         const greetingDuration = Math.max(3000, Math.min(greeting.length * 70, 8000));
         triggerSpeak(greetingDuration);
         setTimeout(() => setPendingAutoVoiceStart(true), greetingDuration + 500);
@@ -1081,14 +1096,14 @@ export default function Interview() {
         setStartError("Connected in fallback mode. Some AI features may be limited right now.");
         const greeting = `Hello! I'm ${interviewerName}, your ${interviewerRole}. Let's begin. Please introduce yourself.`;
         setMessages([createMessage("ai", greeting)]);
-        speakAiMessage(greeting, safeAvatar);
+        speakAiMessage(greeting, safeCharacter);
         const greetingDuration = Math.max(3000, Math.min(greeting.length * 70, 8000));
         triggerSpeak(greetingDuration);
         setTimeout(() => setPendingAutoVoiceStart(true), greetingDuration + 500);
       }
     } catch {
       setStartError("Could not start interview right now. Please try again.");
-      setShowAvatarSelect(true);
+      setShowCharacterSelect(true);
       setInterviewActive(false);
     } finally {
       setIsStartingInterview(false);
@@ -1111,7 +1126,7 @@ export default function Interview() {
 
   const submitMessage = async (messageText, metadata = {}) => {
     const trimmedMessage = (messageText || "").trim();
-    if (!trimmedMessage || !selectedAvatar) return;
+    if (!trimmedMessage || !selectedCharacter) return;
     if (currentQuestion >= totalQuestions) {
       setChatError("Interview question limit reached. Finishing session…");
       scheduleInterviewEnd(1200);
@@ -1149,6 +1164,14 @@ export default function Interview() {
     })
       .then((analysisRes) => {
         const payload = analysisRes.data || {};
+
+        // update 3D avatar confidence based on evaluation or stats
+        if (payload.verification && typeof payload.verification.overallScore === 'number') {
+          setConfidenceScore(Math.min(Math.max(payload.verification.overallScore / 100, 0), 1));
+        } else if (payload.stats && typeof payload.stats.score === 'number') {
+          setConfidenceScore(Math.min(Math.max(payload.stats.score / 100, 0), 1));
+        }
+
         if (payload.verification) {
           setLatestVerification(payload.verification);
         }
@@ -1173,15 +1196,15 @@ export default function Interview() {
         });
       });
 
-    // Avatar starts thinking while waiting
+    // Character starts thinking while waiting
     triggerThinking();
     setIsAiTyping(true);
 
     try {
       const response = await API.post("/interview/chat", {
         message: trimmedMessage,
-        avatar: { name: selectedAvatar.name },
-        role: selectedAvatar.role,
+        character: { name: selectedCharacter.name },
+        role: selectedCharacter.role,
         questionCount: Math.min(currentQuestion + 1, totalQuestions),
         config: interviewConfig,
         selections: planningSelections,
@@ -1192,13 +1215,13 @@ export default function Interview() {
       const aiMsg = createMessage("ai", response.data.response, 1);
       setMessages(prev => [...prev, aiMsg]);
       setCurrentQuestion((prev) => Math.min(prev + 1, totalQuestions));
-      speakAiMessage(response.data.response, selectedAvatar);
+      speakAiMessage(response.data.response, selectedCharacter);
 
       // Nod briefly, then speak for the estimated time (improved calculation)
       triggerNod();
       const speakDuration = Math.max(2000, Math.min(response.data.response.length * 70, 8000));
       setTimeout(() => triggerSpeak(speakDuration), 800);
-      
+
       // Delay auto-voice start slightly longer to allow animation to complete
       setTimeout(() => setPendingAutoVoiceStart(true), speakDuration + 500);
 
@@ -1220,7 +1243,7 @@ export default function Interview() {
       setChatError("Network issue detected. Responses may be delayed.");
       const fallback = createMessage("ai", "I'm having a little trouble. Please continue.", 1);
       setMessages(prev => [...prev, fallback]);
-      speakAiMessage(fallback.message, selectedAvatar);
+      speakAiMessage(fallback.message, selectedCharacter);
       triggerSpeak(2500);
       setTimeout(() => setPendingAutoVoiceStart(true), 3000);
     } finally {
@@ -1235,7 +1258,7 @@ export default function Interview() {
   };
 
   const requestNextQuestion = async () => {
-    if (isAiTyping || isFetchingNextQuestion || !selectedAvatar) return;
+    if (isAiTyping || isFetchingNextQuestion || !selectedCharacter) return;
     if (currentQuestion >= totalQuestions) {
       setChatError("You have reached the configured number of questions.");
       scheduleInterviewEnd(1200);
@@ -1260,8 +1283,8 @@ export default function Interview() {
     try {
       const response = await API.post("/interview/chat", {
         message: `next question please. reason: ${skipReason}`,
-        avatar: { name: selectedAvatar.name },
-        role: selectedAvatar.role,
+        character: { name: selectedCharacter.name },
+        role: selectedCharacter.role,
         questionCount: Math.min(currentQuestion + 1, totalQuestions),
         config: interviewConfig,
         selections: planningSelections,
@@ -1272,7 +1295,7 @@ export default function Interview() {
       const aiMsg = createMessage("ai", response.data.response, 1);
       setMessages((prev) => [...prev, aiMsg]);
       setCurrentQuestion((prev) => Math.min(prev + 1, totalQuestions));
-      speakAiMessage(response.data.response, selectedAvatar);
+      speakAiMessage(response.data.response, selectedCharacter);
       triggerNod();
       const speakDuration = Math.max(2000, Math.min(response.data.response.length * 70, 8000));
       setTimeout(() => triggerSpeak(speakDuration), 700);
@@ -1312,7 +1335,7 @@ export default function Interview() {
       setIsListeningUser(false);
     }
     setIsSpeaking(false);
-    setAvatarPosture("idle");
+    setCharacterPosture("idle");
     if (postureMonitorTimerRef.current) {
       clearInterval(postureMonitorTimerRef.current);
       postureMonitorTimerRef.current = null;
@@ -1327,8 +1350,8 @@ export default function Interview() {
       const summary = {
         sessionId: `${Date.now()}`,
         completedAt: new Date().toISOString(),
-        interviewer: selectedAvatar?.name,
-        role: selectedAvatar?.role,
+        interviewer: selectedCharacter?.name,
+        role: selectedCharacter?.role,
         mode: useChat ? "Chat" : "Video",
         durationSeconds: timeElapsed,
         questionsAnswered: finalAnalyses.length,
@@ -1347,12 +1370,12 @@ export default function Interview() {
 
     const persistPromise = summaryPayload && reportPayload
       ? API.post("/interview/session", {
-          summary: summaryPayload,
-          report: reportPayload,
-          selections: planningSelections,
-        })
-          .then(() => "saved")
-          .catch(() => "failed")
+        summary: summaryPayload,
+        report: reportPayload,
+        selections: planningSelections,
+      })
+        .then(() => "saved")
+        .catch(() => "failed")
       : Promise.resolve("failed");
 
     persistPromise.then((dbSaveStatus) => {
@@ -1372,8 +1395,8 @@ export default function Interview() {
     planningSelections,
     interviewConfig,
     navigate,
-    selectedAvatar?.name,
-    selectedAvatar?.role,
+    selectedCharacter?.name,
+    selectedCharacter?.role,
     sessionAnalyses,
     timeElapsed,
     totalQuestions,
@@ -1467,7 +1490,7 @@ export default function Interview() {
     recognition.onstart = () => {
       setIsListeningUser(true);
       setLiveTranscript("");
-      setAvatarPosture("listening");
+      setCharacterPosture("listening");
       setIsSpeaking(false);
     };
 
@@ -1623,19 +1646,16 @@ export default function Interview() {
         + balanceConfidence * 0.2
       ) * 100;
 
-      const confidenceBuffer = Math.max(6, Math.min(10, Math.round((100 - postureTuning.confidenceMin) * 0.2)));
       const brightnessWithinRange =
-        metrics.avgBrightness > (postureTuning.brightnessMin - 10)
-        && metrics.avgBrightness < (postureTuning.brightnessMax + 10);
-      const centeredEnough = metrics.centerEdgeRatio >= (postureTuning.centerMin - 0.02);
-      const balancedEnough = metrics.horizontalBalance <= (postureTuning.balanceMax + 0.08);
+        metrics.avgBrightness > (postureTuning.brightnessMin - 20)
+        && metrics.avgBrightness < (postureTuning.brightnessMax + 20);
+      const centeredEnough = metrics.centerEdgeRatio >= (postureTuning.centerMin - 0.08);
 
       const personLikely =
-        confidenceScore >= (postureTuning.confidenceMin - confidenceBuffer)
+        confidenceScore >= 25
         && metrics.hasDetail
         && brightnessWithinRange
-        && centeredEnough
-        && balancedEnough;
+        && centeredEnough;
 
       return { metrics, personLikely, confidenceScore };
     };
@@ -1995,17 +2015,17 @@ export default function Interview() {
           )}
         </div>
 
-        {showAvatarSelect ? (
+        {showCharacterSelect ? (
           /* ===== AVATAR SELECTION ===== */
-          <div className="avatar-selection">
+          <div className="character-selection">
             <h2>Choose Your Interviewer</h2>
             <p>
               {userProfile?.industry
                 ? `Personalized for ${userProfile.industry}.`
                 : "Select an AI interviewer and start your 1:1 mock interview"}
             </p>
-            <div className="avatar-pack-badge" role="status" aria-live="polite">
-              Current pack: {currentAvatarPackLabel}
+            <div className="character-pack-badge" role="status" aria-live="polite">
+              Current pack: {currentCharacterPackLabel}
             </div>
 
             {featureFlags.experimentalPrompts && (
@@ -2116,44 +2136,44 @@ export default function Interview() {
               />
             </SilentErrorBoundary>
 
-            <div className="avatars-grid">
-              {avatars.length === 0 && (
+            <div className="characters-grid">
+              {characters.length === 0 && (
                 <div className="state-empty" role="status" aria-live="polite">
                   <h3>No interviewers available</h3>
                   <p>Try refreshing your profile from the dashboard and come back.</p>
                 </div>
               )}
-              {avatars.map(avatar => (
+              {characters.map(character => (
                 <div
-                  key={avatar.id}
-                  className={`avatar-card ${hoveredAvatarId === avatar.id ? "avatar-card-hovered" : ""}`}
-                  onClick={() => startInterview(avatar)}
+                  key={character.id}
+                  className={`character-card ${hoveredCharacterId === character.id ? "character-card-hovered" : ""}`}
+                  onClick={() => startInterview(character)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      startInterview(avatar);
+                      startInterview(character);
                     }
                   }}
-                  onMouseEnter={() => setHoveredAvatarId(avatar.id)}
-                  onMouseLeave={() => setHoveredAvatarId(null)}
+                  onMouseEnter={() => setHoveredCharacterId(character.id)}
+                  onMouseLeave={() => setHoveredCharacterId(null)}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Start interview with ${avatar.name}, ${avatar.role}`}
+                  aria-label={`Start interview with ${character.name}, ${character.role}`}
                   aria-disabled={isStartingInterview}
-                  style={{ background: avatar.bgColor }}
+                  style={{ background: character.bgColor }}
                 >
-                  <div className="avatar-preview">
-                    {renderAvatarPreview(avatar)}
+                  <div className="character-preview">
+                    {renderCharacterPreview(character)}
                   </div>
 
-                  <h3>{avatar.name}</h3>
-                  <p className="avatar-role">{avatar.role}</p>
+                  <h3>{character.name}</h3>
+                  <p className="character-role">{character.role}</p>
                   <button
-                    className="select-avatar-btn"
+                    className="select-character-btn"
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation();
-                      startInterview(avatar);
+                      startInterview(character);
                     }}
                     disabled={isStartingInterview}
                   >
@@ -2172,10 +2192,10 @@ export default function Interview() {
                 Starting your session…
               </p>
             )}
-            
+
             {/* Interview Header */}
             <div className="interview-header">
-              <h2 className="interview-title">{selectedAvatar?.name} Interview</h2>
+              <h2 className="interview-title">{selectedCharacter?.name} Interview</h2>
               <button
                 type="button"
                 className="details-icon-btn"
@@ -2187,18 +2207,33 @@ export default function Interview() {
                 ℹ️
               </button>
             </div>
-            
+
             <div className="interview-main">
-              {/* Left: AI avatar panel + user video */}
+              {/* Left: AI character panel + user video */}
               <div className="interview-area">
-                {/* AI Avatar Panel (always visible) */}
+                {/* AI Character Panel (always visible) */}
                 <div className="ai-avatar-panel">
                   <div className="panel-bg-lines"></div>
 
-                  {renderInterviewerPanelAvatar()}
+                  {renderInterviewerPanelCharacter()}
 
-                  <div className="ai-panel-name">{selectedAvatar?.name}</div>
-                  <div className="ai-panel-role">{selectedAvatar?.role}</div>
+                  {/* 3D Scene HUD Overlay */}
+                  {use3DScene && (
+                    <InterviewHUD
+                      confidenceScore={confidenceScore}
+                      eyeContactPercentage={livePostureScore || 72}
+                      fillerWordCount={sessionAnalyses.reduce((sum, analysis) => sum + (analysis.fillerWordCount || 0), 0)}
+                      speechWaveform={speechMetrics?.waveform || []}
+                      postureData={{
+                        confidence: livePostureScore || 75,
+                        message: livePostureStatus.message
+                      }}
+                      isLive={interviewActive && !isPaused}
+                    />
+                  )}
+
+                  <div className="ai-panel-name">{selectedCharacter?.name}</div>
+                  <div className="ai-panel-role">{selectedCharacter?.role}</div>
                   <div className="ai-panel-status" aria-live="polite">
                     <span className="status-dot"></span>
                     <span>{isAiTyping ? "Thinking…" : isSpeaking ? "Speaking…" : "Listening"}</span>
@@ -2233,6 +2268,17 @@ export default function Interview() {
                     title={autoPlayEnabled ? "Auto-play next questions is ON" : "Auto-play next questions is OFF"}
                   >
                     {autoPlayEnabled ? "⚡ Auto-Play On" : "⚡ Auto-Play Off"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="voice-toggle-btn"
+                    onClick={() => setUse3DScene(!use3DScene)}
+                    aria-pressed={use3DScene}
+                    aria-label={use3DScene ? "Switch to 2D avatar" : "Switch to 3D mode"}
+                    title={use3DScene ? "2D avatar" : "3D immersive scene"}
+                  >
+                    {use3DScene ? "🧊 3D" : "🧸 2D"}
                   </button>
 
                   <div className="panel-desk"></div>
@@ -2279,11 +2325,11 @@ export default function Interview() {
                   /* Chat mode */
                   <div className="chat-container">
                     <div className="chat-header">
-                      <div className="chat-avatar">
-                          {renderAvatarChip(selectedAvatar, "chat-avatar-icon")}
+                      <div className="chat-character">
+                        {renderCharacterChip(selectedCharacter, "chat-character-icon")}
                         <div>
-                          <h3>{selectedAvatar?.name}</h3>
-                          <p>{selectedAvatar?.role}</p>
+                          <h3>{selectedCharacter?.name}</h3>
+                          <p>{selectedCharacter?.role}</p>
                         </div>
                       </div>
                       <button className="switch-video-btn" onClick={() => setUseChat(false)} aria-label="Switch to video mode">
@@ -2300,13 +2346,13 @@ export default function Interview() {
                       )}
                       {messages.map(msg => (
                         <div key={msg.id} className={`message ${msg.sender === "user" ? "user-message" : "ai-message"}`}>
-                          <div className="message-avatar">
-                            {msg.sender === "user" ? "👤" : renderAvatarChip(selectedAvatar, "message-avatar-icon")}
+                          <div className="message-character">
+                            {msg.sender === "user" ? "👤" : renderCharacterChip(selectedCharacter, "message-character-icon")}
                           </div>
                           <div className="message-content">
                             <div className="message-header">
                               <span className="message-sender">
-                                {msg.sender === "user" ? "You" : selectedAvatar?.name}
+                                {msg.sender === "user" ? "You" : selectedCharacter?.name}
                               </span>
                               <span className="message-time">{msg.timestamp}</span>
                             </div>
@@ -2316,7 +2362,7 @@ export default function Interview() {
                       ))}
                       {isAiTyping && (
                         <div className="message ai-message">
-                          <div className="message-avatar">{renderAvatarChip(selectedAvatar, "message-avatar-icon")}</div>
+                          <div className="message-character">{renderCharacterChip(selectedCharacter, "message-character-icon")}</div>
                           <div className="message-content">
                             <div className="typing-indicator" aria-label="AI is typing" role="status">
                               <span></span><span></span><span></span>
@@ -2395,18 +2441,18 @@ export default function Interview() {
                       <span className="detail-icon">👤</span>
                       <div className="detail-content">
                         <span className="detail-label">Interviewer</span>
-                        <span className="detail-value">{selectedAvatar?.name}</span>
+                        <span className="detail-value">{selectedCharacter?.name}</span>
                       </div>
                     </button>
-                    
+
                     <button className="detail-button" type="button" aria-label="Role details">
                       <span className="detail-icon">💼</span>
                       <div className="detail-content">
                         <span className="detail-label">Role</span>
-                        <span className="detail-value">{selectedAvatar?.role}</span>
+                        <span className="detail-value">{selectedCharacter?.role}</span>
                       </div>
                     </button>
-                    
+
                     <button className="detail-button" type="button" aria-label="Mode details">
                       <span className="detail-icon">{useChat ? '💬' : '📹'}</span>
                       <div className="detail-content">
@@ -2414,7 +2460,7 @@ export default function Interview() {
                         <span className="detail-value">{useChat ? "Chat" : "Video"}</span>
                       </div>
                     </button>
-                    
+
                     {selectedDomainName && (
                       <button className="detail-button" type="button" aria-label="Domain details">
                         <span className="detail-icon">📚</span>
@@ -2424,7 +2470,7 @@ export default function Interview() {
                         </div>
                       </button>
                     )}
-                    
+
                     {selectedDifficultyName && (
                       <button className="detail-button" type="button" aria-label="Difficulty details">
                         <span className="detail-icon">⚡</span>
@@ -2434,7 +2480,7 @@ export default function Interview() {
                         </div>
                       </button>
                     )}
-                    
+
                     {selectedInterviewTypeName && (
                       <button className="detail-button" type="button" aria-label="Interview type details">
                         <span className="detail-icon">🎯</span>
@@ -2444,7 +2490,7 @@ export default function Interview() {
                         </div>
                       </button>
                     )}
-                    
+
                     <button className="detail-button" type="button" aria-label="Duration details">
                       <span className="detail-icon">⏱️</span>
                       <div className="detail-content">
@@ -2452,7 +2498,7 @@ export default function Interview() {
                         <span className="detail-value">{formatTime(timeElapsed)}</span>
                       </div>
                     </button>
-                    
+
                     <button className="detail-button detail-button-status" type="button" aria-label="AI status">
                       <span className="detail-icon">
                         {isAiTyping ? '🤔' : isSpeaking ? '🗣️' : '👂'}
@@ -2464,7 +2510,7 @@ export default function Interview() {
                         </span>
                       </div>
                     </button>
-                    
+
                     <button className="detail-button" type="button" aria-label="Posture monitor status">
                       <span className="detail-icon">📊</span>
                       <div className="detail-content">
@@ -2476,7 +2522,7 @@ export default function Interview() {
                     </button>
                   </div>
                 )}
-                
+
                 <div className="current-question">
                   <h3>Interview Progress</h3>
                   <div className="progress-inline-row">
@@ -2503,18 +2549,18 @@ export default function Interview() {
                     </button>
 
                     <div className="skip-reason-wrap compact">
-                    <label htmlFor="skipReasonSelect">If skipping, reason</label>
-                    <select
-                      id="skipReasonSelect"
-                      value={skipReason}
-                      onChange={(event) => setSkipReason(event.target.value)}
-                      disabled={isAiTyping || isFetchingNextQuestion}
-                    >
-                      <option value="too hard">Too hard</option>
-                      <option value="clarification">Need clarification</option>
-                      <option value="repeated">Already answered</option>
-                      <option value="timing">Time management</option>
-                    </select>
+                      <label htmlFor="skipReasonSelect">If skipping, reason</label>
+                      <select
+                        id="skipReasonSelect"
+                        value={skipReason}
+                        onChange={(event) => setSkipReason(event.target.value)}
+                        disabled={isAiTyping || isFetchingNextQuestion}
+                      >
+                        <option value="too hard">Too hard</option>
+                        <option value="clarification">Need clarification</option>
+                        <option value="repeated">Already answered</option>
+                        <option value="timing">Time management</option>
+                      </select>
                     </div>
                   </div>
                 </div>

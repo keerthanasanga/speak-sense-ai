@@ -62,8 +62,6 @@ $RECYCLE.BIN/
 *.njsproj
 *.sln
 *.sw?
-.vscode/settings.json
-.vscode/launch.json
 
 # ── Python (ai-service) ──────────────────
 __pycache__/
@@ -81,8 +79,10 @@ venv/
 env/
 .venv/
 ai-service/venv/
+avatar-system/venv/
+*venv*/
+*_venv/
 *.egg-info/
-dist/
 *.egg
 *.whl
 .Python

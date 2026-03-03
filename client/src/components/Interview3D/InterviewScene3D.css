@@ -1,0 +1,143 @@
+/* InterviewScene3D.css - 3D Environment Styles */
+
+.interview-scene-3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  overflow: hidden;
+}
+
+.scene-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.scene-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a2847 100%);
+}
+
+/* Status Indicator */
+.scene-status {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(100, 150, 255, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.status-indicator.ready {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .scene-status {
+    bottom: 12px;
+    left: 12px;
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .interview-scene-3d {
+    height: 60vh;
+  }
+
+  .scene-status {
+    bottom: 8px;
+    left: 8px;
+    font-size: 10px;
+  }
+}
+
+/* WebGL Rendering Optimization */
+.scene-container canvas {
+  image-rendering: auto;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* Loading state */
+.interview-scene-3d.loading {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.interview-scene-3d.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(100, 150, 255, 0.3);
+  border-top-color: rgba(100, 150, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Focus overlay for interviewers */
+.interview-scene-3d .focused-interviewer {
+  filter: brightness(1.2);
+  animation: focusHighlight 0.6s ease-out;
+}
+
+@keyframes focusHighlight {
+  0% {
+    filter: brightness(1.5);
+  }
+  100% {
+    filter: brightness(1.2);
+  }
+}
+
+/* Depth-of-field effect simulation */
+.interview-scene-3d .depth-effect {
+  filter: blur(1px);
+}
+
+/* Anti-aliasing optimization */
+.scene-container {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

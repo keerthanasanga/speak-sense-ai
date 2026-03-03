@@ -9,9 +9,6 @@ export default function Dashboard() {
   const location = useLocation();
   const [greeting, setGreeting] = useState("");
   const [activeTab, setActiveTab] = useState(location.pathname.toLowerCase());
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const navRightRef = useRef(null);
 
   const [user, setUser] = useState(() => {
     try {
@@ -101,36 +98,16 @@ export default function Dashboard() {
           }));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
     setActiveTab(location.pathname.toLowerCase());
   }, [location.pathname]);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (navRightRef.current && !navRightRef.current.contains(event.target)) {
-        setShowNotifications(false);
-        setShowProfile(false);
-      }
-    };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
-  const handleLogout = () => {
-    clearAuthSession();
-    navigate("/login");
-  };
 
-  const handleMarkAllAsRead = () => {
-    setUser((prev) => ({
-      ...prev,
-      notifications: 0,
-    }));
-  };
 
   return (
     <div className="dashboard-container">
@@ -142,160 +119,7 @@ export default function Dashboard() {
         <div className="bg-glow glow-3"></div>
       </div>
 
-      {/* Navigation Bar */}
-      <nav className="dashboard-nav">
-        <div className="nav-brand">
-          <Link to="/dashboard" className="brand-logo">
-            <span className="logo-icon">🎯</span>
-            <span className="logo-text">SpeakSense AI</span>
-          </Link>
-        </div>
-
-        <div className="nav-menu">
-          <Link 
-            to="/dashboard" 
-            className={`nav-item ${activeTab === '/dashboard' ? 'active' : ''}`}
-          >
-            <span className="nav-icon">📊</span>
-            <span>Overview</span>
-          </Link>
-          <Link 
-            to="/planning" 
-            className={`nav-item ${activeTab === '/planning' ? 'active' : ''}`}
-          >
-            <span className="nav-icon">🎙️</span>
-            <span>Interviews</span>
-          </Link>
-          <Link 
-            to="/results" 
-            className={`nav-item ${activeTab === '/results' ? 'active' : ''}`}
-          >
-            <span className="nav-icon">📝</span>
-            <span>Feedback</span>
-          </Link>
-          <Link 
-            to="/history" 
-            className={`nav-item ${activeTab === '/history' ? 'active' : ''}`}
-          >
-            <span className="nav-icon">📚</span>
-            <span>History</span>
-          </Link>
-          <Link 
-            to="/courses" 
-            className={`nav-item ${activeTab === '/courses' ? 'active' : ''}`}
-          >
-            <span className="nav-icon">🎓</span>
-            <span>Courses</span>
-          </Link>
-          <Link 
-            to="/practice" 
-            className={`nav-item ${activeTab === '/practice' ? 'active' : ''}`}
-          >
-            <span className="nav-icon">⚡</span>
-            <span>Practice</span>
-          </Link>
-          <Link 
-            to="/settings" 
-            className={`nav-item ${activeTab === '/settings' ? 'active' : ''}`}
-          >
-            <span className="nav-icon">⚙️</span>
-            <span>Settings</span>
-          </Link>
-        </div>
-
-        <div className="nav-right" ref={navRightRef}>
-          {/* Notifications */}
-          <div className="notifications-dropdown">
-            <button 
-              className="notification-btn"
-              onClick={() => {
-                setShowNotifications((prev) => !prev);
-                setShowProfile(false);
-              }}
-            >
-              <span className="notification-icon">🔔</span>
-              {user.notifications > 0 && (
-                <span className="notification-badge">{user.notifications}</span>
-              )}
-            </button>
-            {showNotifications && (
-              <div className="dropdown-menu notifications-menu">
-                <div className="dropdown-header">
-                  <h4>Notifications</h4>
-                  <button type="button" className="mark-read" onClick={handleMarkAllAsRead}>
-                    Mark all as read
-                  </button>
-                </div>
-                <div className="notification-item unread">
-                  <span className="noti-icon">📊</span>
-                  <div className="noti-content">
-                    <p>Your interview feedback is ready</p>
-                    <span className="noti-time">5 min ago</span>
-                  </div>
-                </div>
-                <div className="notification-item">
-                  <span className="noti-icon">🎯</span>
-                  <div className="noti-content">
-                    <p>New practice session available</p>
-                    <span className="noti-time">1 hour ago</span>
-                  </div>
-                </div>
-                <div className="notification-item">
-                  <span className="noti-icon">🏆</span>
-                  <div className="noti-content">
-                    <p>You've completed 25 interviews!</p>
-                    <span className="noti-time">Yesterday</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* User Profile */}
-          <div className="profile-dropdown">
-            <button 
-              className="profile-btn"
-              onClick={() => {
-                setShowProfile((prev) => !prev);
-                setShowNotifications(false);
-              }}
-            >
-              <span className="profile-avatar">{user.avatar}</span>
-              <span className="profile-name">{user.name.split(' ')[0]}</span>
-            </button>
-            {showProfile && (
-              <div className="dropdown-menu profile-menu">
-                <div className="profile-header">
-                  <span className="profile-avatar-large">{user.avatar}</span>
-                  <div className="profile-info">
-                    <h4>{user.name}</h4>
-                    <p>{user.industry ? `${user.industry} • ` : ''}{user.level} Level</p>
-                  </div>
-                </div>
-                <div className="profile-stats">
-                  <div className="profile-stat">
-                    <span className="stat-value">{user.streak}</span>
-                    <span className="stat-label">Day Streak</span>
-                  </div>
-                  <div className="profile-stat">
-                    <span className="stat-value">{user.interviewsCompleted}</span>
-                    <span className="stat-label">Interviews</span>
-                  </div>
-                  <div className="profile-stat">
-                    <span className="stat-value">{user.averageScore}%</span>
-                    <span className="stat-label">Avg. Score</span>
-                  </div>
-                </div>
-                <div className="profile-links">
-                  <Link to="/profile">View Profile</Link>
-                  <Link to="/settings">Settings</Link>
-                  <button onClick={handleLogout} className="logout-btn">Logout</button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
+      {/* Main Content */}
 
       {/* Main Content */}
       <main className="dashboard-main">
@@ -391,8 +215,8 @@ export default function Dashboard() {
                       <span className="task-name">{task.task}</span>
                       <div className="task-progress">
                         <div className="progress-bar">
-                          <div 
-                            className="progress-fill" 
+                          <div
+                            className="progress-fill"
                             style={{ width: `${(task.progress / task.total) * 100}%` }}
                           ></div>
                         </div>

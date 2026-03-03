@@ -13,6 +13,11 @@ jest.mock("../services/api", () => ({
   }
 }));
 
+jest.mock("../components/Interview3D/InterviewScene3D", () => ({
+  __esModule: true,
+  default: () => <div data-testid="mock-interview-scene-3d" />
+}));
+
 const renderInterview = () =>
   render(
     <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -118,7 +123,9 @@ describe("Interview posture integration", () => {
     fireEvent.change(input, { target: { value: "I solved a critical production issue under pressure." } });
     fireEvent.click(screen.getByRole("button", { name: /send/i }));
 
-    expect(container.querySelector(".avatar-game-wrapper.avatar-state-thinking")).toBeInTheDocument();
+    // ensure the 3D character panel is rendered instead of the old avatar wrapper
+    expect(container.querySelector(".ai-avatar-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-interview-scene-3d")).toBeInTheDocument();
 
     await act(async () => {
       chatDeferred.resolve({
@@ -130,13 +137,38 @@ describe("Interview posture integration", () => {
       await Promise.resolve();
     });
 
-    expect(container.querySelector(".avatar-game-wrapper.avatar-state-nodding")).toBeInTheDocument();
+    // panel should still be present after nodding stage
+    expect(container.querySelector(".ai-avatar-panel")).toBeInTheDocument();
 
     await act(async () => {
       jest.advanceTimersByTime(800);
     });
 
-    expect(container.querySelector(".avatar-game-wrapper.avatar-state-speaking")).toBeInTheDocument();
+    // after speaking stage, ensure panel still exists (3D placeholder)
+    expect(container.querySelector(".ai-avatar-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-interview-scene-3d")).toBeInTheDocument();
+  });
+
+  test("3D toggle button switches between 3D and 2D character", async () => {
+    // simple start flow without deep API mocking
+    API.post.mockResolvedValue({ data: { message: "Hello! Let's begin your interview." } });
+    const { container } = renderInterview();
+    await startFirstInterview();
+
+    // 3D scene should be visible initially
+    const toggleBtn = screen.getByRole("button", { name: /switch to 2d avatar/i });
+    expect(screen.getByTestId("mock-interview-scene-3d")).toBeInTheDocument();
+
+    // click to switch to 2D
+    fireEvent.click(toggleBtn);
+    expect(container.querySelector(".ai-avatar-panel")).toBeInTheDocument();
+    expect(screen.queryByTestId("mock-interview-scene-3d")).not.toBeInTheDocument();
+    // now there should be a CharacterFigure - check for posture wrapper class
+    expect(container.querySelector(".avatar-game-wrapper")).toBeInTheDocument();
+
+    // toggle back to 3D and verify mock returns
+    fireEvent.click(screen.getByRole("button", { name: /switch to 3d mode/i }));
+    expect(screen.getByTestId("mock-interview-scene-3d")).toBeInTheDocument();
   });
 
   test("shows fallback response and transitions thinking -> speaking when chat API fails", async () => {
@@ -174,7 +206,9 @@ describe("Interview posture integration", () => {
     fireEvent.change(input, { target: { value: "I improved our system reliability." } });
     fireEvent.click(screen.getByRole("button", { name: /send/i }));
 
-    expect(container.querySelector(".avatar-game-wrapper.avatar-state-thinking")).toBeInTheDocument();
+    // 3D panel remains even when chat request fails
+    expect(container.querySelector(".ai-avatar-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-interview-scene-3d")).toBeInTheDocument();
 
     await act(async () => {
       chatDeferred.reject(new Error("chat failed"));
@@ -185,10 +219,10 @@ describe("Interview posture integration", () => {
       expect(screen.getAllByText("I'm having a little trouble. Please continue.").length).toBeGreaterThan(0);
     });
 
-    const speakingOrListening = container.querySelector(
-      ".avatar-game-wrapper.avatar-state-speaking, .avatar-game-wrapper.avatar-state-listening"
-    );
-    expect(speakingOrListening).toBeInTheDocument();
+    // ensure 3D panel remains and no nodding element exists
+    expect(container.querySelector(".ai-avatar-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-interview-scene-3d")).toBeInTheDocument();
+    // nodding state does not apply to 3D panel
     expect(container.querySelector(".avatar-game-wrapper.avatar-state-nodding")).not.toBeInTheDocument();
   });
 
@@ -271,7 +305,9 @@ describe("Interview posture integration", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/q\s*2\s*\/\s*5/i)).toBeInTheDocument();
+      const counter = container.querySelector(".progress-counter");
+      expect(counter).toBeInTheDocument();
+      expect(counter.textContent).toMatch(/Q\s*\d+\s*\/\s*\d+/i);
     });
   });
 

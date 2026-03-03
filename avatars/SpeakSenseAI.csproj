@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>SpeakSenseAI.Avatars</AssemblyName>
+    <RootNamespace>SpeakSenseAI.Avatars</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Character.cs" />
+    <Compile Include="AvatarController.cs" />
+  </ItemGroup>
+</Project>

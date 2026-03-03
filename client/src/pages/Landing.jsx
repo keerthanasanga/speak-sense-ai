@@ -14,7 +14,6 @@ export default function Landing() {
   };
 
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -80,12 +79,12 @@ export default function Landing() {
 
   useEffect(() => {
     setIsVisible(true);
-    
+
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % features.length);
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 4000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -142,7 +141,7 @@ export default function Landing() {
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       // Update and draw particles
       particles.forEach(p => {
         p.x += p.vx;
@@ -337,34 +336,6 @@ export default function Landing() {
         width={viewport.width}
         height={viewport.height}
       />
-      <header className="landing-topbar">
-        <Link to="/" className="topbar-brand">
-          <span className="topbar-logo">🎙️</span>
-          <span>SpeakSense AI</span>
-        </Link>
-        
-        <button 
-          className="mobile-menu-toggle" 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle navigation menu"
-          aria-expanded={isMobileMenuOpen}
-        >
-          <span className="hamburger-icon">
-            {isMobileMenuOpen ? '✕' : '☰'}
-          </span>
-        </button>
-        
-        <nav className={`topbar-links ${isMobileMenuOpen ? 'open' : ''}`}>
-          <a href="#features" onClick={() => setIsMobileMenuOpen(false)}>Features</a>
-          <a href="#testimonials" onClick={() => setIsMobileMenuOpen(false)}>Stories</a>
-          <a href="#cta" onClick={() => setIsMobileMenuOpen(false)}>Get Started</a>
-        </nav>
-        
-        <div className={`topbar-actions ${isMobileMenuOpen ? 'open' : ''}`}>
-          <Link to="/login" className="topbar-btn ghost">Sign In</Link>
-          <Link to="/signup" className="topbar-btn solid">Try Free</Link>
-        </div>
-      </header>
 
       {/* Hero Section */}
       <section className="hero-section">
@@ -374,15 +345,15 @@ export default function Landing() {
             <span className="pulse-dot"></span>
             Powered by Advanced AI
           </div>
-          
+
           <h1 className="hero-title">
             Master Your Interviews with
             <span className="gradient-text-animated"> AI-Powered Intelligence</span>
           </h1>
-          
+
           <p className="hero-description">
-            Experience the future of interview preparation with our advanced AI system that 
-            provides real-time feedback, personalized coaching, and comprehensive analytics 
+            Experience the future of interview preparation with our advanced AI system that
+            provides real-time feedback, personalized coaching, and comprehensive analytics
             to help you land your dream job.
           </p>
 
@@ -397,7 +368,7 @@ export default function Landing() {
                   animationDelay: `${index * 0.2}s`
                 }}
               >
-                <div 
+                <div
                   className="avatar-ring"
                   style={{ background: avatar.gradient }}
                 ></div>
@@ -412,29 +383,29 @@ export default function Landing() {
 
           {/* AI Voice Demo Button */}
           <div className="ai-demo-wrap">
-          <div className="ai-demo">
-            <button 
-              type="button"
-              className={`demo-btn ${isPlaying ? 'playing' : ''}`}
-              onClick={handleWatchDemo}
-              aria-pressed={isPlaying}
-            >
-              <span className="demo-icon">{isPlaying ? '⏸️' : '▶️'}</span>
-              <span className="demo-text">
-                {isPlaying ? 'Playing AI Demo...' : 'Hear AI in Action'}
-              </span>
-            </button>
-            <div className="waveform">
-              <span></span><span></span><span></span><span></span><span></span>
+            <div className="ai-demo">
+              <button
+                type="button"
+                className={`demo-btn ${isPlaying ? 'playing' : ''}`}
+                onClick={handleWatchDemo}
+                aria-pressed={isPlaying}
+              >
+                <span className="demo-icon">{isPlaying ? '⏸️' : '▶️'}</span>
+                <span className="demo-text">
+                  {isPlaying ? 'Playing AI Demo...' : 'Hear AI in Action'}
+                </span>
+              </button>
+              <div className="waveform">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
             </div>
+            {demoStatus && (
+              <p className="demo-status" role="status" aria-live="polite">
+                {demoStatus}
+              </p>
+            )}
           </div>
-          {demoStatus && (
-            <p className="demo-status" role="status" aria-live="polite">
-              {demoStatus}
-            </p>
-          )}
-          </div>
-          
+
           <div className="cta-buttons">
             <Link to="/signup">
               <button className="primary-btn glow-effect">
@@ -478,8 +449,8 @@ export default function Landing() {
 
         <div className="ai-avatars-grid">
           {aiAvatars.map((avatar, index) => (
-            <div 
-              key={avatar.id} 
+            <div
+              key={avatar.id}
               className="ai-avatar-card"
               style={{
                 background: `linear-gradient(135deg, ${avatar.color}15, ${avatar.color}05)`,
@@ -510,11 +481,11 @@ export default function Landing() {
           <h2>Powerful <span className="gradient-text">Features</span></h2>
           <p>Everything you need to ace your interviews</p>
         </div>
-        
+
         <div className="features-grid">
           {features.map((feature, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`feature-card ${activeFeature === index ? 'active' : ''}`}
               onMouseEnter={() => setActiveFeature(index)}
               style={{
@@ -544,10 +515,10 @@ export default function Landing() {
           <h2>Your Journey to <span className="gradient-text">Success</span></h2>
           <p>Three simple steps to interview mastery</p>
         </div>
-        
+
         <div className="timeline-container">
           <div className="timeline-line"></div>
-          
+
           <div className="timeline-step">
             <div className="step-badge" style={{ background: '#00f2fe' }}>
               <span className="step-number">1</span>
@@ -600,7 +571,7 @@ export default function Landing() {
         <div className="demo-content">
           <h2>See It in <span className="gradient-text">Action</span></h2>
           <p>Watch how our AI provides real-time feedback during an interview session</p>
-          
+
           <div className="demo-window">
             <div className="demo-header">
               <div className="window-controls">
@@ -608,7 +579,7 @@ export default function Landing() {
               </div>
               <span className="demo-title">Live Interview Session</span>
             </div>
-            
+
             <div className="demo-body">
               <div className="ai-interviewer">
                 <div className="ai-avatar-large">🤖</div>
@@ -616,7 +587,7 @@ export default function Landing() {
                   <span></span><span></span><span></span>
                 </div>
               </div>
-              
+
               <div className="interview-chat">
                 <div className="message ai">
                   <div className="message-content">
@@ -645,11 +616,11 @@ export default function Landing() {
           <h2>Success <span className="gradient-text">Stories</span></h2>
           <p>Join thousands of professionals who landed their dream jobs</p>
         </div>
-        
+
         <div className="testimonials-carousel">
           {testimonials.map((testimonial, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`testimonial-card ${activeTestimonial === index ? 'active' : ''}`}
               style={{
                 transform: `translateX(${(index - activeTestimonial) * 110}%) scale(${index === activeTestimonial ? 1 : 0.8})`,
@@ -673,15 +644,15 @@ export default function Landing() {
               <p className="feedback">"{testimonial.feedback}"</p>
             </div>
           ))}
-          
+
           <div className="carousel-controls">
-            <button 
+            <button
               className="carousel-btn"
               onClick={() => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
             >
               ←
             </button>
-            <button 
+            <button
               className="carousel-btn"
               onClick={() => setActiveTestimonial((prev) => (prev + 1) % testimonials.length)}
             >
@@ -696,11 +667,11 @@ export default function Landing() {
         <div className="cta-background">
           <div className="cta-particles"></div>
         </div>
-        
+
         <div className="cta-content">
           <h2>Ready to Transform Your Interview Skills?</h2>
           <p>Join 50,000+ professionals who have already improved their interview success rate</p>
-          
+
           <div className="cta-features">
             <div className="cta-feature">
               <span>✓ 7-day free trial</span>
@@ -712,7 +683,7 @@ export default function Landing() {
               <span>✓ Cancel anytime</span>
             </div>
           </div>
-          
+
           <div className="cta-buttons">
             <Link to="/signup">
               <button className="primary-btn large pulse-animation">
@@ -738,7 +709,7 @@ export default function Landing() {
       {/* Footer with AI Theme */}
       <footer className="footer">
         <div className="footer-gradient"></div>
-        
+
         <div className="footer-content">
           <div className="footer-section brand">
             <h3>✨ Speak Sense AI</h3>
@@ -750,7 +721,7 @@ export default function Landing() {
               <button type="button" className="social-link" aria-label="Social link Chat">💬</button>
             </div>
           </div>
-          
+
           <div className="footer-section">
             <h4>Platform</h4>
             <Link to="/features">Features</Link>
@@ -758,7 +729,7 @@ export default function Landing() {
             <Link to="/demo">Live Demo</Link>
             <Link to="/reviews">Success Stories</Link>
           </div>
-          
+
           <div className="footer-section">
             <h4>Resources</h4>
             <Link to="/blog">Blog</Link>
@@ -766,7 +737,7 @@ export default function Landing() {
             <Link to="/webinars">Webinars</Link>
             <Link to="/faq">FAQ</Link>
           </div>
-          
+
           <div className="footer-section">
             <h4>Company</h4>
             <Link to="/about">About Us</Link>
@@ -775,7 +746,7 @@ export default function Landing() {
             <Link to="/press">Press</Link>
           </div>
         </div>
-        
+
         <div className="footer-bottom">
           <p>&copy; 2024 Speak Sense AI. All rights reserved.</p>
           <div className="footer-links">

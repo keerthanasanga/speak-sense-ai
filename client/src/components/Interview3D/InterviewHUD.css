@@ -1,0 +1,517 @@
+/* InterviewHUD.css - Interactive HUD Overlay Styles */
+
+.interview-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* ==================== WIDGET STYLES ==================== */
+
+.hud-widget {
+  position: absolute;
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(100, 150, 255, 0.25);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hud-widget:hover {
+  background: rgba(15, 23, 42, 0.75);
+  border-color: rgba(100, 150, 255, 0.35);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4),
+              inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.widget-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+/* ==================== CONFIDENCE GAUGE ==================== */
+
+.confidence-gauge {
+  top: 20px;
+  left: 20px;
+  width: 140px;
+  padding: 20px;
+}
+
+.radial-gauge {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 12px;
+}
+
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1) rotate(-90deg);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.gauge-fill {
+  stroke-linecap: round;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.4));
+}
+
+.gauge-text {
+  font-size: 20px;
+  font-weight: 700;
+  fill: #e2e8f0;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.gauge-label {
+  font-size: 10px;
+  color: #94a3b8;
+  text-align: center;
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+/* ==================== EYE CONTACT TRACKER ==================== */
+
+.eye-contact-tracker {
+  top: 20px;
+  right: 20px;
+  width: 160px;
+}
+
+.eye-tracker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.eye-indicator {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), rgba(100, 150, 255, 0.1));
+  border: 2px solid rgba(100, 150, 255, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eye-ball {
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle at 35% 35%, #4f9eff, #2563eb);
+  border-radius: 50%;
+  border: 2px solid rgba(100, 150, 255, 0.6);
+  animation: eyeTrack 3s ease-in-out infinite;
+}
+
+@keyframes eyeTrack {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(4px, -2px);
+  }
+  50% {
+    transform: translate(-4px, 2px);
+  }
+  75% {
+    transform: translate(2px, -4px);
+  }
+}
+
+.contact-percentage {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4f9eff;
+  min-width: 45px;
+  text-align: right;
+}
+
+.tracker-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(100, 150, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.tracker-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f9eff, #00f2fe);
+  border-radius: 2px;
+  transition: width 0.2s ease;
+  box-shadow: 0 0 8px rgba(79, 158, 255, 0.6);
+}
+
+/* ==================== FILLER WORD COUNTER ==================== */
+
+.filler-counter {
+  bottom: 120px;
+  left: 20px;
+  width: 140px;
+}
+
+.counter-display {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.counter-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ef8354;
+  line-height: 1;
+}
+
+.counter-unit {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filler-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(100, 150, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.filler-indicator {
+  height: 100%;
+  background: linear-gradient(90deg, #48bb78, #ef8354);
+  border-radius: 3px;
+  transition: width 0.2s ease;
+}
+
+.filler-indicator.warning {
+  background: linear-gradient(90deg, #ef8354, #ef4444);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+/* ==================== SPEECH CLARITY ==================== */
+
+.speech-clarity {
+  bottom: 120px;
+  right: 20px;
+  width: 180px;
+}
+
+.clarity-waveform {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 40px;
+  gap: 2px;
+  margin-bottom: 8px;
+  padding: 8px 4px;
+  background: rgba(100, 150, 255, 0.05);
+  border-radius: 6px;
+}
+
+.waveform-bar {
+  flex: 1;
+  background: linear-gradient(180deg, #4f9eff, #2563eb);
+  border-radius: 2px;
+  min-height: 2px;
+  max-height: 35px;
+  transition: opacity 0.1s ease;
+  box-shadow: 0 0 4px rgba(79, 158, 255, 0.4);
+}
+
+.clarity-score {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4f9eff;
+}
+
+/* ==================== PERFORMANCE DASHBOARD ==================== */
+
+.performance-dashboard {
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  max-width: 90vw;
+}
+
+.dashboard-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background: rgba(100, 150, 255, 0.05);
+  border: 1px solid rgba(100, 150, 255, 0.15);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.metric-label {
+  font-size: 9px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.metric-value.good {
+  color: #10b981;
+}
+
+.metric-value.high {
+  color: #10b981;
+}
+
+.metric-value.needs-improvement {
+  color: #ef8354;
+}
+
+.metric-value.low {
+  color: #ef8354;
+}
+
+/* ==================== POSTURE STATUS ==================== */
+
+.posture-status {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  text-align: center;
+}
+
+.posture-score {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4f9eff;
+  margin-bottom: 4px;
+}
+
+.posture-message {
+  font-size: 9px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  min-height: 18px;
+}
+
+.posture-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.indicator-dot {
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.posture-status.warning .indicator-dot {
+  background: #ef8354;
+}
+
+/* ==================== STATUS BAR ==================== */
+
+.hud-status-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: rgba(15, 23, 42, 0.9);
+  border-top: 1px solid rgba(100, 150, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #10b981;
+}
+
+.status-indicator.paused {
+  color: #ef8354;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: statusPulse 1s ease-in-out infinite;
+}
+
+.status-indicator.paused .status-dot {
+  background: #ef8354;
+  animation: none;
+}
+
+.status-timer {
+  font-size: 10px;
+  color: #cbd5e1;
+  opacity: 0.7;
+}
+
+/* ==================== RESPONSIVE ADJUSTMENTS ==================== */
+
+@media (max-width: 1024px) {
+  .confidence-gauge,
+  .eye-contact-tracker,
+  .filler-counter,
+  .speech-clarity {
+    padding: 12px;
+    font-size: 12px;
+  }
+
+  .hud-widget {
+    padding: 12px;
+  }
+
+  .performance-dashboard {
+    width: 280px;
+  }
+
+  .metrics-grid {
+    gap: 6px;
+  }
+
+  .metric-item {
+    padding: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .interview-hud {
+    display: none;
+  }
+
+  /* Show minimal HUD on mobile */
+  .interview-hud.mobile-minimal {
+    display: block;
+  }
+
+  .confidence-gauge,
+  .eye-contact-tracker,
+  .filler-counter,
+  .speech-clarity,
+  .posture-status {
+    display: none;
+  }
+
+  .performance-dashboard {
+    width: calc(100vw - 40px);
+    bottom: 50px;
+    left: 20px;
+    right: 20px;
+    transform: none;
+  }
+}
+
+/* ==================== ANIMATION UTILITIES ==================== */
+
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hud-widget {
+  animation: slideIn 0.4s ease-out;
+}
+
+/* Glass morphism effects */
+.hud-widget::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hud-widget:hover::before {
+  opacity: 1;
+}
+
+/* Gradient text for emphasis */
+.gradient-text {
+  background: linear-gradient(135deg, #4f9eff, #00f2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

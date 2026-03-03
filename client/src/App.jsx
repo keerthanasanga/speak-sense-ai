@@ -12,6 +12,7 @@ import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Practice from "./pages/Practice";
 import Courses from "./pages/Courses";
+import AdvancedNavbar from "./components/AdvancedNavbar";
 import { getAuthToken } from "./utils/authStorage";
 import RouteErrorBoundary from "./RouteErrorBoundary";
 
@@ -185,6 +186,7 @@ function App() {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthSessionBridge />
       <RedirectTraceLogger />
+      <AdvancedNavbar />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<PublicAuthRoute><Login /></PublicAuthRoute>} />
