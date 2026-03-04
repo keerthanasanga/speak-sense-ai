@@ -213,36 +213,72 @@ export default function InterviewScene3D({
       // Update characters
       const chars = charactersRef.current;
       chars.forEach((character, index) => {
-        if (!character.userData.animations) character.userData.animations = { idleTime: 0, blinkTimer: 0 };
-
-        // Idle breathing animation
-        character.userData.animations.idleTime += deltaTime;
-
-        // Game-like breathing: more pronounced scale and slight torso rotation
-        const breathAmount = Math.sin(character.userData.animations.idleTime * 2) * 0.025;
-        const breathSway = Math.cos(character.userData.animations.idleTime * 1.5) * 0.015;
-
-        if (character.userData.meshes?.torso?.scale) {
-          character.userData.meshes.torso.scale.y = 1 + breathAmount;
-          character.userData.meshes.torso.scale.x = 1 + (breathAmount * 0.3); // breathe outward
-          character.userData.meshes.torso.rotation.z = breathSway; // slight swaying
+        // Initialize animation state once per character
+        if (!character.userData.animations) {
+          character.userData.animations = {
+            idleTime: 0,
+            blinkTimer: 0,
+            nextBlinkAt: 2.5 + Math.random() * 3.5, // pre-computed, stable per cycle
+            isBlinking: false,
+            blinkProgress: 0
+          };
         }
 
-        // Blink animation: randomized interval between 2 and 6 seconds
-        character.userData.animations.blinkTimer += deltaTime;
-        if (character.userData.animations.blinkTimer > (3 + Math.random() * 3)) {
-          character.userData.animations.blinkTimer = 0;
+        const anim = character.userData.animations;
+
+        // ── Idle breathing ─────────────────────────────────────────
+        anim.idleTime += deltaTime;
+        const breathAmount = Math.sin(anim.idleTime * 2) * 0.025;
+        const breathSway   = Math.cos(anim.idleTime * 1.5) * 0.015;
+
+        if (character.userData.meshes?.torso) {
+          character.userData.meshes.torso.scale.y    = 1 + breathAmount;
+          character.userData.meshes.torso.scale.x    = 1 + breathAmount * 0.3;
+          character.userData.meshes.torso.rotation.z = breathSway;
         }
 
-        const blinkPhase = Math.max(0, (character.userData.animations.blinkTimer - 2.8) / 0.2);
-        const blinkAmount = Math.sin(Math.min(blinkPhase * Math.PI, Math.PI)) * 0.4; // deeper blink
-        if (character.userData.meshes?.leftEye) character.userData.meshes.leftEye.scale.y = 1 - blinkAmount;
-        if (character.userData.meshes?.rightEye) character.userData.meshes.rightEye.scale.y = 1 - blinkAmount;
-
-        // Pronounced head bob in sync with breathing
+        // ── Head idle bob ───────────────────────────────────────────
         if (character.userData.meshes?.head) {
-          character.userData.meshes.head.rotation.z = Math.sin(character.userData.animations.idleTime * 1.5) * 0.03;
-          character.userData.meshes.head.rotation.x = Math.sin(character.userData.animations.idleTime * 1.2) * 0.02;
+          const idleRotX = Math.sin(anim.idleTime * 1.2) * 0.02;
+          const idleRotZ = Math.sin(anim.idleTime * 1.5) * 0.03;
+          // Gentle lerp so blendshape-driven rotation from AnimationController
+          // can smoothly blend back to idle without fighting
+          character.userData.meshes.head.rotation.x =
+            THREE.MathUtils.lerp(character.userData.meshes.head.rotation.x, idleRotX, 0.04);
+          character.userData.meshes.head.rotation.z =
+            THREE.MathUtils.lerp(character.userData.meshes.head.rotation.z, idleRotZ, 0.04);
+        }
+
+        // ── Blink animation (stable pre-computed interval) ──────────
+        anim.blinkTimer += deltaTime;
+
+        if (!anim.isBlinking && anim.blinkTimer >= anim.nextBlinkAt) {
+          anim.isBlinking    = true;
+          anim.blinkProgress = 0;
+        }
+
+        if (anim.isBlinking) {
+          const BLINK_DURATION = 0.28; // seconds for full close-open cycle
+          anim.blinkProgress += deltaTime / BLINK_DURATION;
+          const blinkAmount = Math.sin(Math.min(anim.blinkProgress, 1) * Math.PI) * 0.95;
+
+          if (character.userData.meshes?.leftEye)
+            character.userData.meshes.leftEye.scale.y  = Math.max(0.05, 1 - blinkAmount);
+          if (character.userData.meshes?.rightEye)
+            character.userData.meshes.rightEye.scale.y = Math.max(0.05, 1 - blinkAmount);
+
+          if (anim.blinkProgress >= 1) {
+            anim.isBlinking    = false;
+            anim.blinkProgress = 0;
+            anim.blinkTimer    = 0;
+            anim.nextBlinkAt   = 2.0 + Math.random() * 4.0; // new interval after blink
+          }
+        } else {
+          // Restore eye scale to 1 between blinks
+          if (character.userData.meshes?.leftEye)
+            character.userData.meshes.leftEye.scale.y  = 1;
+          if (character.userData.meshes?.rightEye)
+            character.userData.meshes.rightEye.scale.y = 1;
         }
 
         const angle = (index * Math.PI * 2) / (chars.length - 1 || 1);

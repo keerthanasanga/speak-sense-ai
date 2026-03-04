@@ -1,7 +1,8 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import API from "../services/api";
-import { clearAuthSession, getAuthToken, getStoredUser, saveStoredUser } from "../utils/authStorage";
+import { getAuthToken, getStoredUser, saveStoredUser } from "../utils/authStorage";
+import { DAILY_CHALLENGES, ACHIEVEMENT_DEFINITIONS, SCORE_INSIGHTS } from "../data/interviewDatasets";
 import "./dashboard.css";
 
 export default function Dashboard() {
@@ -73,6 +74,28 @@ export default function Dashboard() {
     { id: 2, title: "System Design Masterclass", progress: 20, instructor: "Atlas", duration: "8 hours", icon: "🏗️" },
     { id: 3, title: "Behavioral Interview Prep", progress: 60, instructor: "Echo", duration: "4 hours", icon: "🗣️" }
   ];
+
+  // Daily challenge — pick based on day of year
+  const todayChallenge = DAILY_CHALLENGES[new Date().getDate() % DAILY_CHALLENGES.length];
+
+  // Achievements computed from user stats
+  const userStats = {
+    totalInterviews: user.interviewsCompleted,
+    streak: user.streak,
+    bestScore: user.averageScore + 5, // approximation
+    avgScore: user.averageScore,
+    resumeAnalyzed: false,
+    viewedAllTabs: false,
+    codeSessionsDone: 1,
+  };
+  const earnedAchievements = ACHIEVEMENT_DEFINITIONS.filter(a => a.condition(userStats));
+  const totalXP = earnedAchievements.reduce((sum, a) => sum + a.xp, 0);
+
+  // Score insight
+  const insight = Object.values(SCORE_INSIGHTS).find(i => user.averageScore >= i.min) || SCORE_INSIGHTS.needsWork;
+
+  // Daily challenge timer state
+  const [challengeExpanded, setChallengeExpanded] = useState(false);
 
   // Set greeting based on time of day
   useEffect(() => {
@@ -175,6 +198,45 @@ export default function Dashboard() {
               <span className="stat-trend">3 new this month</span>
             </div>
           </div>
+        </div>
+
+        {/* ==================== FEATURE 1: Daily Challenge ==================== */}
+        <div className="daily-challenge-card">
+          <div className="dc-header">
+            <div className="dc-badge">🎯 Daily Challenge</div>
+            <div className="dc-meta">
+              <span className={`dc-difficulty dc-${todayChallenge.difficulty}`}>{todayChallenge.difficulty}</span>
+              <span className="dc-type">{todayChallenge.type}</span>
+              <span className="dc-time">⏱ {todayChallenge.timeLimit}s</span>
+            </div>
+          </div>
+          <p className="dc-question">{todayChallenge.question}</p>
+          {challengeExpanded && (
+            <div className="dc-tips">
+              <div className="dc-tips-label">💡 Tips for this answer:</div>
+              <ul>
+                {todayChallenge.tips.map((tip, i) => <li key={i}>{tip}</li>)}
+              </ul>
+            </div>
+          )}
+          <div className="dc-actions">
+            <button className="dc-hint-btn" onClick={() => setChallengeExpanded(!challengeExpanded)}>
+              {challengeExpanded ? "Hide Tips" : "Show Tips"}
+            </button>
+            <button className="dc-start-btn" onClick={() => navigate("/planning")}>
+              Practice Now →
+            </button>
+          </div>
+        </div>
+
+        {/* ==================== FEATURE 2: Score Insight Banner ==================== */}
+        <div className="insight-banner" style={{ borderColor: insight.color + "55", background: insight.color + "11" }}>
+          <span className="insight-dot" style={{ background: insight.color }}></span>
+          <div>
+            <strong style={{ color: insight.color }}>Performance: {insight.label}</strong>
+            <p>{insight.advice}</p>
+          </div>
+          <Link to="/results" className="insight-link">View Details →</Link>
         </div>
 
         {/* AI Avatars Section */}
@@ -290,6 +352,32 @@ export default function Dashboard() {
                 ))}
               </div>
               <Link to="/courses" className="view-all-link">Browse All Courses →</Link>
+            </div>
+
+            {/* ==================== FEATURE 3: Achievements Panel ==================== */}
+            <div className="achievements-section">
+              <div className="ach-header">
+                <h2>Achievements</h2>
+                <span className="xp-badge">⚡ {totalXP} XP</span>
+              </div>
+              <div className="ach-grid">
+                {ACHIEVEMENT_DEFINITIONS.map(ach => {
+                  const earned = ach.condition(userStats);
+                  return (
+                    <div key={ach.id} className={`ach-item ${earned ? "earned" : "locked"}`} title={ach.desc}>
+                      <span className="ach-icon">{ach.icon}</span>
+                      <span className="ach-title">{ach.title}</span>
+                      {earned && <span className="ach-xp">+{ach.xp} XP</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="ach-progress-row">
+                <span>{earnedAchievements.length}/{ACHIEVEMENT_DEFINITIONS.length} unlocked</span>
+                <div className="ach-progress-bar">
+                  <div className="ach-progress-fill" style={{ width: `${(earnedAchievements.length / ACHIEVEMENT_DEFINITIONS.length) * 100}%` }}></div>
+                </div>
+              </div>
             </div>
 
             {/* Quick Tips */}

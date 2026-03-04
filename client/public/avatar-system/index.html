@@ -45,7 +45,6 @@
       </section>
     </main>
 
-    <script type="module" src="./js/main.js"></script>
     <script>
       (function enableEmbedMode() {
         const params = new URLSearchParams(window.location.search);
@@ -53,6 +52,15 @@
           document.body.classList.add("embed-mode");
         }
       })();
+    </script>
+    <script type="module">
+      import("./js/main.js").catch(function(err) {
+        console.warn("[AvatarSystem] 3D module failed to load (CDN unavailable?):", err);
+        const stage = document.getElementById("avatarStage");
+        if (stage) {
+          stage.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94a3b8;gap:1rem;"><div style="font-size:5rem;">🤖</div><div style="font-size:1rem;opacity:0.7">Avatar loading offline…</div></div>';
+        }
+      });
     </script>
   </body>
   </html>

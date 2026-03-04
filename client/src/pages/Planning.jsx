@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { DOMAIN_TIPS } from "../data/interviewDatasets";
 import "./planning.css";
 
 export default function Planning() {
@@ -399,10 +400,30 @@ export default function Planning() {
                 </Link>
               </div>
 
-              {/* Tips */}
+              {/* ==================== FEATURE 6: Domain Tips Panel ==================== */}
+              {selectedDomain && (() => {
+                // Map domain name to dataset key
+                const tipKey = Object.keys(DOMAIN_TIPS).find(k =>
+                  selectedDomain.name.toLowerCase().includes(k.toLowerCase().split(" ")[0])
+                ) || Object.keys(DOMAIN_TIPS)[0];
+                const tips = DOMAIN_TIPS[tipKey] || DOMAIN_TIPS["Frontend"];
+                const shown = tips.slice(0, 5);
+                return (
+                  <div className="domain-tips-panel">
+                    <h4>💡 {tipKey} Interview Tips</h4>
+                    <ul className="domain-tips-list">
+                      {shown.map((tip, i) => (
+                        <li key={i}>{tip}</li>
+                      ))}
+                    </ul>
+                    <p className="domain-tips-more">+{tips.length - 5} more tips during your session</p>
+                  </div>
+                );
+              })()}
+
               {isFormValid && (
                 <div className="preparation-tips">
-                  <h4>📋 Preparation Tips</h4>
+                  <h4>📋 Before You Start</h4>
                   <ul>
                     <li>Find a quiet place with good lighting</li>
                     <li>Test your microphone and camera</li>

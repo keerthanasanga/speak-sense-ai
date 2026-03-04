@@ -12,6 +12,8 @@ import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Practice from "./pages/Practice";
 import Courses from "./pages/Courses";
+import ResumeAnalyzer from "./pages/ResumeAnalyzer";
+import QuestionBank from "./pages/QuestionBank";
 import AdvancedNavbar from "./components/AdvancedNavbar";
 import { getAuthToken } from "./utils/authStorage";
 import RouteErrorBoundary from "./RouteErrorBoundary";
@@ -25,6 +27,8 @@ const PRIVATE_PATH_PREFIXES = [
   "/settings",
   "/practice",
   "/courses",
+  "/resume-analyzer",
+  "/question-bank",
 ];
 
 const isPrivatePath = (pathname = "") => PRIVATE_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -209,6 +213,8 @@ function App() {
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="/practice" element={<PrivateRoute><Practice /></PrivateRoute>} />
         <Route path="/courses" element={<PrivateRoute><Courses /></PrivateRoute>} />
+        <Route path="/resume-analyzer" element={<PrivateRoute><ResumeAnalyzer /></PrivateRoute>} />
+        <Route path="/question-bank" element={<PrivateRoute><QuestionBank /></PrivateRoute>} />
 
         <Route path="/forgot-password" element={<Navigate to="/login" replace />} />
         <Route path="/profile" element={<Navigate to="/settings" replace />} />

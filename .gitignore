@@ -117,3 +117,27 @@ datasets/
 .stylelintcache
 .turbo/
 storybook-static/
+
+# ── 3D Model caches ───────────────────────────────────
+*.glb.cache
+*.gltf.cache
+draco/
+
+# ── Lock files (keep one, ignore the rest) ────────────
+package-lock.json
+yarn.lock
+
+# ── Uploads / user content ────────────────────────────
+uploads/
+public/uploads/
+client/public/uploads/
+
+# ── AI service extras ─────────────────────────────────
+ai-service/__pycache__/
+ai-service/models/
+ai-service/checkpoints/
+
+# ── Sensitive config ──────────────────────────────────
+config/secrets.js
+config/secrets.json
+*.credentials.json

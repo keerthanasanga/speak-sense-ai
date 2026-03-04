@@ -3,6 +3,94 @@ import { Link } from "react-router-dom";
 import API from "../services/api";
 import "./history.css";
 
+// ==================== FEATURE 7: Performance Trend Chart ====================
+function PerformanceTrendChart({ interviews }) {
+  const sorted = [...interviews].sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (sorted.length < 2) return null;
+
+  const W = 500, H = 140, PAD = { t: 20, r: 20, b: 30, l: 40 };
+  const scores = sorted.map(i => i.score);
+  const minS = Math.max(0, Math.min(...scores) - 10);
+  const maxS = Math.min(100, Math.max(...scores) + 5);
+  const xStep = (W - PAD.l - PAD.r) / (sorted.length - 1);
+  const yScale = (s) => PAD.t + ((maxS - s) / (maxS - minS)) * (H - PAD.t - PAD.b);
+
+  const points = sorted.map((item, i) => ({
+    x: PAD.l + i * xStep,
+    y: yScale(item.score),
+    score: item.score,
+    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    role: item.role,
+  }));
+
+  const polyline = points.map(p => `${p.x},${p.y}`).join(" ");
+  const area = `M${points[0].x},${H - PAD.b} ` +
+    points.map(p => `L${p.x},${p.y}`).join(" ") +
+    ` L${points[points.length - 1].x},${H - PAD.b} Z`;
+
+  const [hovered, setHovered] = useState(null);
+  const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  const avgY = yScale(avg);
+
+  return (
+    <div className="trend-chart-section">
+      <h3 className="trend-title">📈 Score Trend</h3>
+      <div className="trend-svg-wrapper">
+        <svg viewBox={`0 0 ${W} ${H}`} className="trend-svg" role="img" aria-label="Performance trend chart">
+          <defs>
+            <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {/* Y-axis guides */}
+          {[25, 50, 75, 100].map(val => {
+            const y = yScale(Math.min(val, maxS));
+            if (y < PAD.t || y > H - PAD.b) return null;
+            return (
+              <g key={val}>
+                <line x1={PAD.l} y1={y} x2={W - PAD.r} y2={y} stroke="rgba(255,255,255,0.05)" strokeDasharray="3,4" />
+                <text x={PAD.l - 5} y={y + 4} textAnchor="end" fontSize="9" fill="#475569">{val}</text>
+              </g>
+            );
+          })}
+          {/* Average line */}
+          {avgY >= PAD.t && avgY <= H - PAD.b && (
+            <line x1={PAD.l} y1={avgY} x2={W - PAD.r} y2={avgY} stroke="#f59e0b" strokeWidth="1" strokeDasharray="4,3" opacity="0.6" />
+          )}
+          {/* Area fill */}
+          <path d={area} fill="url(#trendGrad)" />
+          {/* Line */}
+          <polyline points={polyline} fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+          {/* Data points */}
+          {points.map((p, i) => (
+            <g key={i} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)} style={{ cursor: 'pointer' }}>
+              <circle cx={p.x} cy={p.y} r={hovered === i ? 7 : 4} fill={hovered === i ? "#60a5fa" : "#3b82f6"} stroke="#0f172a" strokeWidth="2" />
+              {hovered === i && (
+                <g>
+                  <rect x={p.x - 45} y={p.y - 40} width="90" height="30" rx="5" fill="#1e293b" stroke="rgba(59,130,246,0.5)" strokeWidth="1" />
+                  <text x={p.x} y={p.y - 26} textAnchor="middle" fontSize="10" fill="#60a5fa" fontWeight="700">{p.score}%</text>
+                  <text x={p.x} y={p.y - 14} textAnchor="middle" fontSize="9" fill="#94a3b8">{p.date}</text>
+                </g>
+              )}
+              {/* X-axis labels */}
+              <text x={p.x} y={H - PAD.b + 14} textAnchor="middle" fontSize="8" fill="#475569">{p.date}</text>
+            </g>
+          ))}
+          {/* Avg label */}
+          {avgY >= PAD.t && avgY <= H - PAD.b && (
+            <text x={W - PAD.r + 2} y={avgY + 4} fontSize="8" fill="#f59e0b">avg</text>
+          )}
+        </svg>
+      </div>
+      <div className="trend-legend">
+        <span className="trend-legend-item"><span className="dot blue"></span>Score per interview</span>
+        <span className="trend-legend-item"><span className="dot amber"></span>Average ({avg}%)</span>
+      </div>
+    </div>
+  );
+}
+
 // Mock data - In production, this would come from an API
 const MOCK_INTERVIEW_HISTORY = [
   {
@@ -468,10 +556,13 @@ export default function History() {
         </div>
 
         {filteredInterviews.length > 0 && (
-          <PerformanceSummary 
-            interviews={filteredInterviews} 
-            stats={stats}
-          />
+          <>
+            <PerformanceTrendChart interviews={filteredInterviews} />
+            <PerformanceSummary
+              interviews={filteredInterviews}
+              stats={stats}
+            />
+          </>
         )}
 
         <FooterActions />

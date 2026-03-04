@@ -48,6 +48,8 @@ export default function AdvancedNavbar() {
             { name: "Overview", path: "/dashboard", icon: "📊" },
             { name: "Interviews", path: "/planning", icon: "🎙️" },
             { name: "Practice", path: "/practice", icon: "🧠" },
+            { name: "Resume", path: "/resume-analyzer", icon: "📋" },
+            { name: "Questions", path: "/question-bank", icon: "❓" },
             { name: "Feedback", path: "/results", icon: "📝" },
             { name: "Settings", path: "/settings", icon: "⚙️" },
         ]

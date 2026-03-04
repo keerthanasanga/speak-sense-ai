@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 /**
  * BehaviorIntelligence.js
  * Maps interview metrics to character behaviors and emotional responses
@@ -26,7 +25,7 @@ export class BehaviorIntelligence {
     });
   }
 
-  update(deltaTime, metrics) {
+  update(_deltaTime, metrics) {
     if (!metrics) return;
 
     // Store metrics history (keep last 10 frames)
@@ -73,10 +72,10 @@ export class BehaviorIntelligence {
     };
   }
 
-  updateCharacterBehaviors(metrics) {
+  updateCharacterBehaviors(_metrics) {
     const analysis = this.state.currentAnalysis;
 
-    this.characters.forEach((character, index) => {
+    this.characters.forEach((character) => {
       const role = character.userData.role;
       const emotionalState = this.state.emotionalStates[character.userData.name];
 
@@ -185,7 +184,7 @@ export class BehaviorIntelligence {
     }
   }
 
-  triggerContextualGestures(metrics) {
+  triggerContextualGestures(_metrics) {
     const analysis = this.state.currentAnalysis;
 
     // Technical interviewer takes notes on weak answers
@@ -279,6 +278,9 @@ export class BehaviorIntelligence {
   // ==================== CLEANUP ====================
 
   dispose() {
+    if (this.animationController?.dispose) {
+      this.animationController.dispose();
+    }
     this.characters = null;
     this.animationController = null;
     this.state = null;

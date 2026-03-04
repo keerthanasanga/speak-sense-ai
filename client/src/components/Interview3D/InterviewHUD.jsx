@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './InterviewHUD.css';
 
 export default function InterviewHUD({
@@ -15,10 +15,11 @@ export default function InterviewHUD({
     fillers: 0,
     clarity: 0
   });
+  const [expanded, setExpanded] = useState(false);
+  const intervalRef = useRef(null);
 
   useEffect(() => {
-    // Animate metric updates
-    const timer = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setDisplayMetrics(prev => ({
         confidence: Math.min(prev.confidence + (confidenceScore - prev.confidence) * 0.1, 100),
         eyeContact: Math.min(prev.eyeContact + (eyeContactPercentage - prev.eyeContact) * 0.1, 100),
@@ -27,167 +28,155 @@ export default function InterviewHUD({
       }));
     }, 100);
 
-    return () => clearInterval(timer);
+    return () => clearInterval(intervalRef.current);
   }, [confidenceScore, eyeContactPercentage, fillerWordCount]);
 
+  const confidenceColor = getGaugeColor(displayMetrics.confidence);
+  const eyeContactColor = getGaugeColor(displayMetrics.eyeContact);
+  const fillerSeverity = displayMetrics.fillers > 5 ? '#ef4444' : displayMetrics.fillers > 2 ? '#f59e0b' : '#10b981';
+
   return (
-    <div className="interview-hud">
-      {/* Top-left: Confidence Score Gauge */}
-      <div className="hud-widget confidence-gauge">
-        <div className="widget-title">Confidence</div>
-        <div className="radial-gauge">
-          <svg viewBox="0 0 100 100" className="gauge-svg">
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              fill="none"
-              stroke="rgba(255, 255, 255, 0.1)"
-              strokeWidth="6"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              fill="none"
-              stroke={getGaugeColor(displayMetrics.confidence)}
-              strokeWidth="6"
-              strokeDasharray={`${displayMetrics.confidence * 2.51} 251`}
-              className="gauge-fill"
-            />
-            <text
-              x="50"
-              y="55"
-              textAnchor="middle"
-              className="gauge-text"
-            >
+    <div className={`interview-hud ${expanded ? 'hud-expanded' : ''}`}>
+      {/* Compact bottom metrics bar - always visible */}
+      <div className="hud-bar">
+        <div className="hud-bar-left">
+          <div className={`hud-live-dot ${isLive ? 'live' : 'paused'}`} />
+          <span className="hud-live-label">{isLive ? 'LIVE' : 'PAUSED'}</span>
+        </div>
+
+        <div className="hud-pills">
+          <div className="hud-pill" title="Confidence score">
+            <span className="pill-icon">💪</span>
+            <span className="pill-val" style={{ color: confidenceColor }}>
               {Math.round(displayMetrics.confidence)}%
-            </text>
-          </svg>
+            </span>
+            <span className="pill-lbl">Conf</span>
+          </div>
+
+          <div className="hud-pill" title="Eye contact">
+            <span className="pill-icon">👁</span>
+            <span className="pill-val" style={{ color: eyeContactColor }}>
+              {Math.round(displayMetrics.eyeContact)}%
+            </span>
+            <span className="pill-lbl">Eye</span>
+          </div>
+
+          <div className="hud-pill" title="Filler word count">
+            <span className="pill-icon">🔇</span>
+            <span className="pill-val" style={{ color: fillerSeverity }}>
+              {Math.round(displayMetrics.fillers)}
+            </span>
+            <span className="pill-lbl">Fill</span>
+          </div>
+
+          <div className="hud-pill" title="Speech clarity">
+            <span className="pill-icon">🎙</span>
+            <span className="pill-val" style={{ color: getGaugeColor(displayMetrics.clarity) }}>
+              {Math.round(displayMetrics.clarity)}
+            </span>
+            <span className="pill-lbl">Clarity</span>
+          </div>
         </div>
-        <div className="gauge-label">Real-time Confidence</div>
+
+        <button
+          className="hud-expand-btn"
+          onClick={() => setExpanded(v => !v)}
+          aria-label={expanded ? 'Collapse metrics' : 'Expand metrics'}
+          title={expanded ? 'Hide details' : 'Show details'}
+        >
+          {expanded ? '▼' : '▲'}
+        </button>
       </div>
 
-      {/* Top-right: Eye Contact Tracker */}
-      <div className="hud-widget eye-contact-tracker">
-        <div className="widget-title">Eye Contact</div>
-        <div className="eye-tracker">
-          <div className="eye-indicator">
-            <div className="eye-ball"></div>
+      {/* Expanded detail panel - shows above the bar when toggled */}
+      {expanded && (
+        <div className="hud-detail-panel">
+          {/* Confidence radial gauge */}
+          <div className="hud-detail-widget">
+            <div className="detail-title">Confidence</div>
+            <svg viewBox="0 0 80 80" className="mini-gauge-svg">
+              <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5" />
+              <circle
+                cx="40" cy="40" r="30" fill="none"
+                stroke={confidenceColor}
+                strokeWidth="5"
+                strokeDasharray={`${displayMetrics.confidence * 1.885} 188.5`}
+                strokeLinecap="round"
+                transform="rotate(-90 40 40)"
+              />
+              <text x="40" y="45" textAnchor="middle" fontSize="14" fontWeight="700" fill="#e2e8f0">
+                {Math.round(displayMetrics.confidence)}%
+              </text>
+            </svg>
           </div>
-          <div className="contact-percentage">{Math.round(displayMetrics.eyeContact)}%</div>
-        </div>
-        <div className="tracker-bar">
-          <div 
-            className="tracker-fill"
-            style={{ width: `${displayMetrics.eyeContact}%` }}
-          ></div>
-        </div>
-        <div className="gauge-label">Contact with Interviewer</div>
-      </div>
 
-      {/* Bottom-left: Filler Word Detection */}
-      <div className="hud-widget filler-counter">
-        <div className="widget-title">Filler Words</div>
-        <div className="counter-display">
-          <div className="counter-number">
-            {Math.round(displayMetrics.fillers)}
+          {/* Eye contact */}
+          <div className="hud-detail-widget">
+            <div className="detail-title">Eye Contact</div>
+            <div className="detail-bar-container">
+              <div className="detail-big-val" style={{ color: eyeContactColor }}>
+                {Math.round(displayMetrics.eyeContact)}%
+              </div>
+              <div className="detail-track">
+                <div
+                  className="detail-fill"
+                  style={{ width: `${displayMetrics.eyeContact}%`, background: eyeContactColor }}
+                />
+              </div>
+            </div>
           </div>
-          <div className="counter-unit">detected</div>
-        </div>
-        <div className="filler-bar">
-          <div 
-            className={`filler-indicator ${displayMetrics.fillers > 5 ? 'warning' : ''}`}
-            style={{ width: `${Math.min(displayMetrics.fillers * 20, 100)}%` }}
-          ></div>
-        </div>
-      </div>
 
-      {/* Bottom-right: Speech Clarity */}
-      <div className="hud-widget speech-clarity">
-        <div className="widget-title">Clarity</div>
-        <div className="clarity-waveform">
-          {speechWaveform.slice(0, 40).map((amplitude, i) => (
-            <div
-              key={i}
-              className="waveform-bar"
-              style={{
-                height: `${Math.abs(amplitude) * 100}%`,
-                opacity: 0.3 + (i / 40) * 0.7
-              }}
-            ></div>
-          ))}
-        </div>
-        <div className="clarity-score">
-          {Math.round(displayMetrics.clarity)}/100
-        </div>
-      </div>
+          {/* Waveform / Clarity */}
+          <div className="hud-detail-widget">
+            <div className="detail-title">Clarity: {Math.round(displayMetrics.clarity)}/100</div>
+            <div className="mini-waveform">
+              {(speechWaveform.length ? speechWaveform : Array(20).fill(0.1)).slice(0, 20).map((amp, i) => (
+                <div
+                  key={i}
+                  className="mini-wave-bar"
+                  style={{ height: `${Math.max(Math.abs(amp) * 100, 8)}%` }}
+                />
+              ))}
+            </div>
+          </div>
 
-      {/* Center-bottom: Performance Dashboard */}
-      <div className="hud-widget performance-dashboard">
-        <div className="dashboard-title">Performance Metrics</div>
-        <div className="metrics-grid">
-          <div className="metric-item">
-            <span className="metric-label">Pace</span>
-            <span className={`metric-value ${displayMetrics.clarity > 70 ? 'good' : 'needs-improvement'}`}>
-              {displayMetrics.clarity > 70 ? 'Good' : 'Adjust'}
-            </span>
+          {/* Filler words */}
+          <div className="hud-detail-widget">
+            <div className="detail-title">Filler Words</div>
+            <div className="detail-big-val" style={{ color: fillerSeverity }}>
+              {Math.round(displayMetrics.fillers)}
+              <span className="detail-unit"> detected</span>
+            </div>
+            <div className="detail-track">
+              <div
+                className="detail-fill"
+                style={{
+                  width: `${Math.min(displayMetrics.fillers * 20, 100)}%`,
+                  background: fillerSeverity
+                }}
+              />
+            </div>
           </div>
-          <div className="metric-item">
-            <span className="metric-label">Pauses</span>
-            <span className="metric-value">
-              {speechWaveform.filter(a => a === 0).length}
-            </span>
-          </div>
-          <div className="metric-item">
-            <span className="metric-label">Duration</span>
-            <span className="metric-value">
-              {Math.round(speechWaveform.length / 10)}s
-            </span>
-          </div>
-          <div className="metric-item">
-            <span className="metric-label">Engagement</span>
-            <span className={`metric-value ${displayMetrics.eyeContact > 50 ? 'high' : 'low'}`}>
-              {displayMetrics.eyeContact > 50 ? 'High' : 'Low'}
-            </span>
-          </div>
-        </div>
-      </div>
 
-      {/* Posture Status Indicator */}
-      {postureData && (
-        <div className={`hud-widget posture-status ${postureData.confidence >= 80 ? 'good' : 'warning'}`}>
-          <div className="widget-title">Posture</div>
-          <div className="posture-score">{Math.round(postureData.confidence || 0)}/100</div>
-          <div className="posture-message">{postureData.message || 'Checking...'}</div>
-          <div className="posture-indicator">
-            <div className="indicator-dot"></div>
-            <span>
-              {postureData.confidence >= 80 ? 'Excellent' : 
-               postureData.confidence >= 60 ? 'Good' : 
-               postureData.confidence >= 40 ? 'Fair' : 'Needs Adjustment'}
-            </span>
-          </div>
+          {/* Posture */}
+          {postureData && (
+            <div className="hud-detail-widget">
+              <div className="detail-title">Posture</div>
+              <div className="detail-big-val" style={{ color: getGaugeColor(postureData.confidence) }}>
+                {Math.round(postureData.confidence || 0)}/100
+              </div>
+              <div className="detail-posture-msg">{postureData.message || 'Checking…'}</div>
+            </div>
+          )}
         </div>
       )}
-
-      {/* Live Status Indicator */}
-      <div className="hud-status-bar">
-        <div className={`status-indicator ${isLive ? 'live' : 'paused'}`}>
-          <span className="status-dot"></span>
-          {isLive ? 'LIVE' : 'PAUSED'}
-        </div>
-        <div className="status-timer">
-          Session Active
-        </div>
-      </div>
     </div>
   );
 }
 
 function getGaugeColor(percentage) {
-  if (percentage >= 80) return '#10b981'; // Green
-  if (percentage >= 60) return '#f59e0b'; // Amber
-  if (percentage >= 40) return '#ef8354'; // Orange
-  return '#ef4444'; // Red
+  if (percentage >= 80) return '#10b981';
+  if (percentage >= 60) return '#f59e0b';
+  if (percentage >= 40) return '#ef8354';
+  return '#ef4444';
 }

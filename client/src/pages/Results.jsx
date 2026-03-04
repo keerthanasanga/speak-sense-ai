@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { getStoredUser } from "../utils/authStorage";
+import { COMMON_MISTAKES, STUDY_PLAN_TEMPLATES, SALARY_DATA } from "../data/interviewDatasets";
 import "./results.css";
 
 const toFiniteNumber = (value, fallback = 0) => {
@@ -162,6 +163,15 @@ export default function Results() {
         "Provide more quantifiable achievements",
         "Practice closing statements"
       ]
+    },
+
+    // Required by RoleSuggestions, StudyPlanTab, and CommonMistakesTab
+    categories: {
+      technical: 75,
+      behavioral: 80,
+      communication: 82,
+      problemSolving: 72,
+      clarity: 78,
     }
   };
 
@@ -399,6 +409,24 @@ export default function Results() {
             onClick={() => setActiveTab('questions')}
           >
             ❓ Questions
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'roles' ? 'active' : ''}`}
+            onClick={() => setActiveTab('roles')}
+          >
+            🎯 Role Match
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'mistakes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('mistakes')}
+          >
+            ⚠️ Mistakes
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'studyplan' ? 'active' : ''}`}
+            onClick={() => setActiveTab('studyplan')}
+          >
+            📅 Study Plan
           </button>
         </div>
 
@@ -819,6 +847,20 @@ export default function Results() {
               </div>
             </div>
           )}
+
+          {activeTab === 'roles' && (
+            <RoleSuggestions results={results} />
+          )}
+
+          {/* ==================== FEATURE 4: Common Mistakes Tab ==================== */}
+          {activeTab === 'mistakes' && (
+            <CommonMistakesTab overallScore={results.overall.score} />
+          )}
+
+          {/* ==================== FEATURE 5: Study Plan Tab ==================== */}
+          {activeTab === 'studyplan' && (
+            <StudyPlanTab results={results} />
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -826,10 +868,346 @@ export default function Results() {
           <Link to="/dashboard" className="secondary-btn">
             Go to Dashboard
           </Link>
+          <Link to="/resume-analyzer" className="secondary-btn">
+            📋 Analyze Resume
+          </Link>
           <Link to="/planning" className="primary-btn">
             Practice Again
           </Link>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Role Suggestions Component ────────────────────────────────────────────
+const ROLE_DEFINITIONS = [
+  {
+    title: "Software Engineer",
+    icon: "💻",
+    color: "#60a5fa",
+    description: "Build scalable systems and ship reliable software products.",
+    weights: { technical: 0.45, problemSolving: 0.3, communication: 0.15, behavioral: 0.1 },
+    minScore: 60,
+    tips: ["Practice LeetCode-style algorithms", "Study system design fundamentals", "Prepare STAR-method behavioral answers"]
+  },
+  {
+    title: "Product Manager",
+    icon: "🗂️",
+    color: "#f472b6",
+    description: "Lead cross-functional teams to define and ship great products.",
+    weights: { behavioral: 0.4, communication: 0.35, problemSolving: 0.15, technical: 0.1 },
+    minScore: 65,
+    tips: ["Practice product sense questions", "Study metrics and KPI frameworks", "Prepare case studies on past product decisions"]
+  },
+  {
+    title: "Data Analyst",
+    icon: "📊",
+    color: "#34d399",
+    description: "Turn raw data into actionable business insights.",
+    weights: { technical: 0.35, problemSolving: 0.35, communication: 0.2, behavioral: 0.1 },
+    minScore: 58,
+    tips: ["Strengthen SQL and Python skills", "Practice data interpretation exercises", "Prepare storytelling from data examples"]
+  },
+  {
+    title: "Business Analyst",
+    icon: "📈",
+    color: "#f59e0b",
+    description: "Bridge business needs and technical solutions for organizations.",
+    weights: { communication: 0.4, behavioral: 0.3, problemSolving: 0.2, technical: 0.1 },
+    minScore: 60,
+    tips: ["Study requirements gathering techniques", "Practice stakeholder communication scenarios", "Review process improvement frameworks"]
+  },
+  {
+    title: "UX/UI Designer",
+    icon: "🎨",
+    color: "#a78bfa",
+    description: "Create user-centered experiences that are intuitive and delightful.",
+    weights: { communication: 0.35, behavioral: 0.3, problemSolving: 0.25, technical: 0.1 },
+    minScore: 55,
+    tips: ["Build and explain your portfolio", "Practice user research presentation", "Study design system principles"]
+  },
+  {
+    title: "DevOps / Cloud Engineer",
+    icon: "☁️",
+    color: "#22d3ee",
+    description: "Automate and scale infrastructure for high-reliability systems.",
+    weights: { technical: 0.5, problemSolving: 0.3, communication: 0.1, behavioral: 0.1 },
+    minScore: 65,
+    tips: ["Master CI/CD pipeline concepts", "Study Kubernetes and container orchestration", "Practice incident response scenarios"]
+  },
+  {
+    title: "Technical Project Manager",
+    icon: "🗓️",
+    color: "#fb7185",
+    description: "Drive technical projects from planning to delivery on time and within scope.",
+    weights: { behavioral: 0.35, communication: 0.35, technical: 0.2, problemSolving: 0.1 },
+    minScore: 62,
+    tips: ["Practice Agile / Scrum terminology", "Prepare for risk management questions", "Study stakeholder management strategies"]
+  },
+  {
+    title: "ML / AI Engineer",
+    icon: "🤖",
+    color: "#818cf8",
+    description: "Design and deploy machine learning models that solve real-world problems.",
+    weights: { technical: 0.5, problemSolving: 0.35, communication: 0.1, behavioral: 0.05 },
+    minScore: 68,
+    tips: ["Study ML fundamentals and model evaluation", "Practice system design for ML pipelines", "Review common ML interview questions"]
+  }
+];
+
+// ─── Common Mistakes Component ───────────────────────────────────────────────
+function CommonMistakesTab({ overallScore }) {
+  const [filterCat, setFilterCat] = useState("All");
+  const categories = ["All", ...new Set(COMMON_MISTAKES.map(m => m.category))];
+  const filtered = filterCat === "All" ? COMMON_MISTAKES : COMMON_MISTAKES.filter(m => m.category === filterCat);
+  const severityColor = { critical: "#ef4444", high: "#f59e0b", medium: "#3b82f6" };
+
+  return (
+    <div className="mistakes-tab">
+      <div className="mistakes-header">
+        <h2>⚠️ Common Interview Mistakes</h2>
+        <p className="mistakes-subtitle">
+          {overallScore < 70
+            ? "Based on your scores, pay close attention to these common pitfalls."
+            : "You're performing well — use this as a checklist to stay sharp."}
+        </p>
+        <div className="mistakes-filter">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              className={`filter-pill ${filterCat === cat ? "active" : ""}`}
+              onClick={() => setFilterCat(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mistakes-list">
+        {filtered.map((item, i) => (
+          <div key={i} className="mistake-card" style={{ borderLeftColor: severityColor[item.severity] }}>
+            <div className="mistake-top">
+              <span className="mistake-icon">{item.icon}</span>
+              <div className="mistake-body">
+                <div className="mistake-label">
+                  <span className="mistake-cat">{item.category}</span>
+                  <span className="mistake-sev" style={{ color: severityColor[item.severity] }}>
+                    {item.severity}
+                  </span>
+                </div>
+                <p className="mistake-text">{item.mistake}</p>
+              </div>
+            </div>
+            <div className="mistake-fix">
+              <span className="fix-label">✅ Fix:</span> {item.fix}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Study Plan Component ─────────────────────────────────────────────────────
+function StudyPlanTab({ results }) {
+  const overall = results.overall.score;
+  const scores = results.categories || {};
+
+  // Find weakest area
+  const areaMap = {
+    technical: "technical",
+    communication: "communication",
+    behavioral: "behavioral",
+  };
+
+  let weakestKey = "communication";
+  let lowestScore = Infinity;
+  Object.entries(areaMap).forEach(([key]) => {
+    const s = scores[key] || overall;
+    if (s < lowestScore) { lowestScore = s; weakestKey = key; }
+  });
+
+  const plan = STUDY_PLAN_TEMPLATES[weakestKey] || STUDY_PLAN_TEMPLATES.communication;
+  const [selectedWeek, setSelectedWeek] = useState(0);
+  const week = plan.weeks[selectedWeek];
+
+  return (
+    <div className="studyplan-tab">
+      <div className="sp-header">
+        <h2>📅 Your Personalized Study Plan</h2>
+        <p className="sp-subtitle">
+          Based on your performance, your weakest area is <strong>{weakestKey}</strong>.
+          Here is a {plan.duration} plan to improve it.
+        </p>
+      </div>
+      <div className="sp-week-tabs">
+        {plan.weeks.map((w, i) => (
+          <button
+            key={i}
+            className={`sp-week-btn ${selectedWeek === i ? "active" : ""}`}
+            onClick={() => setSelectedWeek(i)}
+          >
+            Week {w.week}: {w.focus}
+          </button>
+        ))}
+      </div>
+      <div className="sp-tasks">
+        {week.tasks.map((task, i) => (
+          <div key={i} className="sp-task-row">
+            <div className="sp-day">{task.day}</div>
+            <div className="sp-task-content">
+              <span className="sp-task-num">{i + 1}</span>
+              <span className="sp-task-text">{task.task}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="sp-note">
+        💡 Consistency beats intensity. 20 focused minutes daily outperforms 3-hour weekend cramming sessions.
+      </div>
+    </div>
+  );
+}
+
+function RoleSuggestions({ results }) {
+  const scores = results.categories;
+  const overall = results.overall.score;
+
+  const roleScores = ROLE_DEFINITIONS.map((role) => {
+    const rawScore = Object.entries(role.weights).reduce((sum, [cat, weight]) => {
+      return sum + (scores[cat] || overall) * weight;
+    }, 0);
+    const finalScore = Math.round(Math.min(rawScore, 99));
+    const eligible = finalScore >= role.minScore;
+    return { ...role, score: finalScore, eligible };
+  });
+
+  const eligible = roleScores.filter((r) => r.eligible).sort((a, b) => b.score - a.score);
+  const stretch = roleScores.filter((r) => !r.eligible).sort((a, b) => b.score - a.score).slice(0, 3);
+
+  return (
+    <div className="roles-tab">
+      <div className="roles-header-block">
+        <h2>Career Role Match</h2>
+        <p className="roles-subtitle">
+          Based on your interview performance across technical, behavioral, and communication dimensions,
+          here are the roles you are best matched for.
+        </p>
+      </div>
+
+      {eligible.length > 0 && (
+        <div className="roles-section">
+          <h3 className="roles-section-title">✅ You are eligible for these roles</h3>
+          <div className="roles-grid">
+            {eligible.map((role) => (
+              <div key={role.title} className="role-card" style={{ borderColor: role.color + "44" }}>
+                <div className="role-card-header">
+                  <span className="role-icon">{role.icon}</span>
+                  <div className="role-score-pill" style={{ background: role.color + "22", color: role.color }}>
+                    {role.score}% match
+                  </div>
+                </div>
+                <h4 className="role-title" style={{ color: role.color }}>{role.title}</h4>
+                <p className="role-desc">{role.description}</p>
+                <div className="role-match-bar-track">
+                  <div
+                    className="role-match-bar-fill"
+                    style={{ width: `${role.score}%`, background: role.color }}
+                  />
+                </div>
+                <div className="role-tips">
+                  <div className="role-tips-label">Preparation tips:</div>
+                  <ul>
+                    {role.tips.map((tip, i) => <li key={i}>{tip}</li>)}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {stretch.length > 0 && (
+        <div className="roles-section">
+          <h3 className="roles-section-title">🚀 Stretch goals — improve your scores to qualify</h3>
+          <div className="roles-grid roles-grid-stretch">
+            {stretch.map((role) => (
+              <div key={role.title} className="role-card role-card-stretch">
+                <div className="role-card-header">
+                  <span className="role-icon">{role.icon}</span>
+                  <div className="role-score-pill stretch-pill">
+                    {role.score}% / {role.minScore}% needed
+                  </div>
+                </div>
+                <h4 className="role-title">{role.title}</h4>
+                <p className="role-desc">{role.description}</p>
+                <div className="role-match-bar-track">
+                  <div
+                    className="role-match-bar-fill stretch-bar"
+                    style={{ width: `${role.score}%` }}
+                  />
+                  <div
+                    className="role-match-bar-threshold"
+                    style={{ left: `${role.minScore}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ==================== FEATURE 8: Salary Insights ==================== */}
+      {eligible.length > 0 && (
+        <div className="salary-insights-section">
+          <h3 className="roles-section-title">💰 Salary Insights for Your Matched Roles</h3>
+          <div className="salary-grid">
+            {eligible.slice(0, 4).map(role => {
+              // Fuzzy match role.title to SALARY_DATA keys
+              const normalize = (s) => s.toLowerCase().replace(/[^a-z]/g, "");
+              const salDataKey = Object.keys(SALARY_DATA).find(k =>
+                normalize(k).includes(normalize(role.title).slice(0, 8)) ||
+                normalize(role.title).includes(normalize(k).slice(0, 8))
+              );
+              const salData = salDataKey ? SALARY_DATA[salDataKey] : SALARY_DATA[role.title];
+              if (!salData) return null;
+              return (
+                <div key={role.title} className="salary-card" style={{ borderColor: role.color + "33" }}>
+                  <div className="salary-card-header">
+                    <span className="salary-icon">{role.icon}</span>
+                    <span className="salary-role" style={{ color: role.color }}>{role.title}</span>
+                  </div>
+                  <div className="salary-levels">
+                    {[
+                      { label: "Entry", data: salData.entry },
+                      { label: "Mid", data: salData.mid },
+                      { label: "Senior", data: salData.senior },
+                    ].map(({ label, data }) => (
+                      <div key={label} className="salary-level-row">
+                        <span className="salary-level-label">{label}</span>
+                        <span className="salary-range">
+                          ${(data.min / 1000).toFixed(0)}k – ${(data.max / 1000).toFixed(0)}k
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="salary-meta">
+                    <span className="salary-meta-item">📡 {salData.demand}</span>
+                    <span className="salary-meta-item">📈 {salData.growth}</span>
+                    <span className="salary-meta-item">🌐 Remote: {salData.remote}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="salary-disclaimer">Salary ranges are approximate US market data for 2025. Actual compensation varies by location, company, and experience.</p>
+        </div>
+      )}
+
+      <div className="roles-footer-note">
+        <span>💡</span>
+        <span>Scores are based on your interview performance. Complete more interviews to refine your match accuracy.</span>
       </div>
     </div>
   );

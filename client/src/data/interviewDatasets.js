@@ -1,0 +1,458 @@
+/**
+ * interviewDatasets.js
+ * Curated datasets for interview preparation features
+ */
+
+// ==================== DOMAIN TIPS ====================
+export const DOMAIN_TIPS = {
+  "Frontend": [
+    "Master the browser rendering pipeline: parsing HTML → CSSOM → render tree → layout → paint",
+    "Understand event bubbling vs capturing — interviewers love this topic",
+    "Know your CSS specificity rules: inline > ID > class > element",
+    "Practice Web Vitals: LCP, FID, CLS — core metrics Google cares about",
+    "Virtualized lists (react-window) for large data sets — a must-know",
+    "Understand the difference between controlled and uncontrolled components",
+    "Be ready to explain the React reconciliation algorithm (Fiber)",
+    "Know how to prevent XSS: sanitize, CSP headers, avoid dangerouslySetInnerHTML",
+    "Accessibility basics: ARIA roles, keyboard navigation, screen reader compatibility",
+    "Tree shaking and code splitting reduce bundle size — know how they work",
+  ],
+  "Backend": [
+    "RESTful API design: use nouns not verbs, proper HTTP methods, status codes",
+    "Indexing strategy: know when to use B-tree vs hash index in your DB",
+    "Rate limiting patterns: token bucket, sliding window — be able to whiteboard",
+    "Understand N+1 problem and how eager loading / DataLoader solve it",
+    "JWT structure: header.payload.signature — know what each part contains",
+    "Connection pooling prevents socket exhaustion under load",
+    "Idempotent APIs: PUT, DELETE should be idempotent; POST should not",
+    "Caching layers: CDN → reverse proxy → app cache → DB query cache",
+    "Understand eventual consistency vs strong consistency trade-offs",
+    "Message queues (RabbitMQ, Kafka) decouple services and improve reliability",
+  ],
+  "Full Stack": [
+    "SSR vs CSR vs SSG: know trade-offs (SEO, TTFB, hydration cost)",
+    "CORS configuration: know exactly why it exists and how preflight works",
+    "Database migrations: always write both up and down migrations",
+    "Monorepo vs polyrepo — be able to argue both sides",
+    "Docker containers isolate dependencies; compose orchestrates multi-service apps",
+    "GraphQL eliminates over/under-fetching that REST struggles with",
+    "WebSockets for real-time; SSE for server-push; polling as last resort",
+    "CI/CD pipelines: lint → test → build → staging → production",
+    "12-factor app methodology: one of the most common system design references",
+    "Feature flags allow dark launches and A/B testing without code deploys",
+  ],
+  "Data Science": [
+    "Explain bias-variance trade-off with a concrete example, not just theory",
+    "Cross-validation prevents data leakage: never use test set to tune hyperparams",
+    "Precision vs Recall: know when each matters more (cancer diagnosis vs spam)",
+    "Feature engineering often matters more than algorithm choice",
+    "Gradient boosting (XGBoost, LightGBM) dominates tabular data competitions",
+    "Normalization vs standardization: use standard scaler for gradient-based models",
+    "Know how to handle class imbalance: SMOTE, class weights, threshold tuning",
+    "P-value alone is not enough; always report effect size and confidence intervals",
+    "SQL window functions: ROW_NUMBER, LEAD, LAG — essential for data analysis",
+    "A/B test sample size depends on effect size, power, and significance level",
+  ],
+  "DevOps": [
+    "Kubernetes: understand pods, deployments, services, ingress controllers",
+    "Immutable infrastructure: replace, don't patch — golden AMI pattern",
+    "Blue-green vs canary deployments — when to use each and why",
+    "Prometheus + Grafana for metrics; ELK stack for log aggregation",
+    "Terraform state management: remote backends prevent team conflicts",
+    "Health checks: liveness (restart if dead) vs readiness (route traffic only when ready)",
+    "Secrets management: never hardcode; use Vault, AWS Secrets Manager, or K8s secrets",
+    "SLO vs SLA vs SLI — interviewers test if you know the difference",
+    "Chaos engineering: proactively inject failures to find weaknesses",
+    "FinOps: right-sizing, spot instances, reserved capacity — cost optimization matters",
+  ],
+  "Mobile": [
+    "Understand the Activity/ViewController lifecycle deeply — most crashes happen here",
+    "Jetpack Compose / SwiftUI are the modern declarative UI standards to know",
+    "Memory management: avoid retain cycles in Swift, bitmap reuse in Android",
+    "Offline-first architecture: sync queues, conflict resolution strategies",
+    "Push notifications: APNs (iOS) and FCM (Android) — different certificate flows",
+    "App size matters: ProGuard/R8 shrinking, asset compression, lazy loading",
+    "Background processing limits on iOS (15 min max for background fetch)",
+    "Deep linking: Universal Links (iOS) and App Links (Android) — often tested",
+    "Accessibility: Dynamic Type (iOS), font scale (Android) — don't hardcode sizes",
+    "Test on real devices: simulators miss GPU issues, memory pressure, ANRs",
+  ],
+  "AI/ML Engineering": [
+    "MLOps: model versioning, feature stores, model monitoring for data drift",
+    "Transformer architecture internals: multi-head attention, positional encoding",
+    "RLHF (Reinforcement Learning from Human Feedback) — understand how LLMs are aligned",
+    "Inference optimization: quantization (INT8/FP16), ONNX, TensorRT",
+    "Embedding models and vector databases (Pinecone, Weaviate, pgvector) for RAG",
+    "Prompt engineering: system prompts, few-shot examples, chain-of-thought",
+    "Model evaluation beyond accuracy: BLEU, ROUGE, BERTScore, human eval",
+    "Responsible AI: bias auditing, model cards, fairness metrics",
+    "Fine-tuning vs RAG: fine-tune for style/behavior; RAG for up-to-date knowledge",
+    "Distributed training: data parallelism vs model parallelism (pipeline, tensor)",
+  ],
+  "System Design": [
+    "Always start with requirements clarification and capacity estimation",
+    "CAP theorem: in a partition, you choose consistency OR availability",
+    "Sharding strategies: hash-based (uniform), range-based (hotspots), directory-based",
+    "Read replicas for read-heavy workloads; master-slave for write durability",
+    "CDN reduces latency for static assets and can cache dynamic responses",
+    "Load balancer algorithms: round robin, least connections, IP hash",
+    "Event sourcing: store events not state — enables time travel and audit logs",
+    "CQRS: separate read and write models for complex domains",
+    "Bloom filters check set membership with zero false negatives, some false positives",
+    "Consistent hashing minimizes reshuffling when nodes are added/removed",
+  ],
+};
+
+// ==================== SALARY DATA ====================
+export const SALARY_DATA = {
+  "Software Engineer": {
+    entry: { min: 70000, max: 95000, currency: "USD" },
+    mid: { min: 95000, max: 140000, currency: "USD" },
+    senior: { min: 140000, max: 200000, currency: "USD" },
+    lead: { min: 180000, max: 260000, currency: "USD" },
+    remote: "Yes",
+    demand: "Very High",
+    growth: "+25% over 5 years",
+  },
+  "Product Manager": {
+    entry: { min: 75000, max: 100000, currency: "USD" },
+    mid: { min: 100000, max: 145000, currency: "USD" },
+    senior: { min: 145000, max: 210000, currency: "USD" },
+    lead: { min: 190000, max: 280000, currency: "USD" },
+    remote: "Partial",
+    demand: "High",
+    growth: "+18% over 5 years",
+  },
+  "Data Analyst": {
+    entry: { min: 55000, max: 75000, currency: "USD" },
+    mid: { min: 75000, max: 110000, currency: "USD" },
+    senior: { min: 110000, max: 155000, currency: "USD" },
+    lead: { min: 145000, max: 195000, currency: "USD" },
+    remote: "Yes",
+    demand: "High",
+    growth: "+22% over 5 years",
+  },
+  "Business Analyst": {
+    entry: { min: 55000, max: 75000, currency: "USD" },
+    mid: { min: 75000, max: 105000, currency: "USD" },
+    senior: { min: 100000, max: 145000, currency: "USD" },
+    lead: { min: 135000, max: 180000, currency: "USD" },
+    remote: "Partial",
+    demand: "Moderate",
+    growth: "+14% over 5 years",
+  },
+  "UX/UI Designer": {
+    entry: { min: 55000, max: 80000, currency: "USD" },
+    mid: { min: 80000, max: 120000, currency: "USD" },
+    senior: { min: 115000, max: 165000, currency: "USD" },
+    lead: { min: 155000, max: 215000, currency: "USD" },
+    remote: "Yes",
+    demand: "High",
+    growth: "+16% over 5 years",
+  },
+  "DevOps Engineer": {
+    entry: { min: 80000, max: 110000, currency: "USD" },
+    mid: { min: 110000, max: 155000, currency: "USD" },
+    senior: { min: 150000, max: 210000, currency: "USD" },
+    lead: { min: 195000, max: 265000, currency: "USD" },
+    remote: "Yes",
+    demand: "Very High",
+    growth: "+28% over 5 years",
+  },
+  "Technical Project Manager": {
+    entry: { min: 70000, max: 95000, currency: "USD" },
+    mid: { min: 95000, max: 135000, currency: "USD" },
+    senior: { min: 130000, max: 180000, currency: "USD" },
+    lead: { min: 170000, max: 230000, currency: "USD" },
+    remote: "Partial",
+    demand: "Moderate",
+    growth: "+12% over 5 years",
+  },
+  "ML/AI Engineer": {
+    entry: { min: 100000, max: 135000, currency: "USD" },
+    mid: { min: 135000, max: 185000, currency: "USD" },
+    senior: { min: 180000, max: 260000, currency: "USD" },
+    lead: { min: 245000, max: 350000, currency: "USD" },
+    remote: "Yes",
+    demand: "Extremely High",
+    growth: "+40% over 5 years",
+  },
+};
+
+// ==================== COMMON INTERVIEW MISTAKES ====================
+export const COMMON_MISTAKES = [
+  {
+    category: "Communication",
+    icon: "🗣️",
+    mistake: "Starting answers without a structure",
+    fix: "Use STAR (Situation, Task, Action, Result) or Problem-Solution-Impact",
+    severity: "high",
+  },
+  {
+    category: "Communication",
+    icon: "🗣️",
+    mistake: "Using filler words excessively (um, like, you know)",
+    fix: "Practice pausing instead of filling silence — silence shows confidence",
+    severity: "medium",
+  },
+  {
+    category: "Technical",
+    icon: "💻",
+    mistake: "Jumping to code without clarifying requirements",
+    fix: "Ask 2-3 clarifying questions, state assumptions, then design before coding",
+    severity: "high",
+  },
+  {
+    category: "Technical",
+    icon: "💻",
+    mistake: "Giving up silently when stuck",
+    fix: "Think out loud — interviewers value your reasoning process over the answer",
+    severity: "high",
+  },
+  {
+    category: "Behavioral",
+    icon: "🧠",
+    mistake: "Answering behavioral questions too vaguely",
+    fix: "Give specific, quantified results — 'improved performance by 40%' beats 'made it faster'",
+    severity: "high",
+  },
+  {
+    category: "Behavioral",
+    icon: "🧠",
+    mistake: "Badmouthing previous employers",
+    fix: "Frame negatives as learning opportunities — 'I learned the importance of X from that experience'",
+    severity: "critical",
+  },
+  {
+    category: "Questions",
+    icon: "❓",
+    mistake: "Not asking questions at the end",
+    fix: "Prepare 3 thoughtful questions about team culture, tech stack, and growth path",
+    severity: "medium",
+  },
+  {
+    category: "Preparation",
+    icon: "📋",
+    mistake: "Not researching the company",
+    fix: "Know the company's mission, recent news, products, and tech stack before the call",
+    severity: "high",
+  },
+  {
+    category: "Confidence",
+    icon: "💪",
+    mistake: "Downplaying achievements with hedging language",
+    fix: "Own your work — say 'I built' not 'I was involved in' when you led the effort",
+    severity: "medium",
+  },
+  {
+    category: "Technical",
+    icon: "💻",
+    mistake: "Ignoring edge cases in solutions",
+    fix: "Always ask: what if input is null/empty? What are the bounds? How does it scale?",
+    severity: "high",
+  },
+];
+
+// ==================== DAILY CHALLENGES ====================
+export const DAILY_CHALLENGES = [
+  {
+    id: 1,
+    type: "behavioral",
+    difficulty: "easy",
+    question: "Tell me about a time you had to learn a new technology quickly under pressure.",
+    tips: ["Focus on your learning process", "Quantify the timeline", "Highlight the outcome"],
+    timeLimit: 120,
+  },
+  {
+    id: 2,
+    type: "technical",
+    difficulty: "medium",
+    question: "Explain the difference between synchronous and asynchronous programming with a real-world analogy.",
+    tips: ["Use a coffee shop analogy", "Mention callbacks/promises/async-await", "Give a code scenario"],
+    timeLimit: 90,
+  },
+  {
+    id: 3,
+    type: "system-design",
+    difficulty: "hard",
+    question: "Design a URL shortener service that can handle 100M URLs and 1B reads per day.",
+    tips: ["Start with capacity estimation", "Cover hashing strategy", "Address caching and load balancing"],
+    timeLimit: 180,
+  },
+  {
+    id: 4,
+    type: "behavioral",
+    difficulty: "easy",
+    question: "Describe a conflict with a team member and how you resolved it.",
+    tips: ["Use STAR format", "Show empathy", "Focus on resolution not blame"],
+    timeLimit: 120,
+  },
+  {
+    id: 5,
+    type: "technical",
+    difficulty: "medium",
+    question: "What is the difference between SQL and NoSQL databases? When would you choose each?",
+    tips: ["Give concrete use-case examples", "Mention ACID vs BASE", "Talk about scaling patterns"],
+    timeLimit: 90,
+  },
+  {
+    id: 6,
+    type: "behavioral",
+    difficulty: "medium",
+    question: "Tell me about a project you're most proud of and why.",
+    tips: ["Pick something with measurable impact", "Show your specific contribution", "Mention challenges overcome"],
+    timeLimit: 150,
+  },
+  {
+    id: 7,
+    type: "technical",
+    difficulty: "hard",
+    question: "Explain how garbage collection works in modern runtimes (Java/JVM or V8/Node.js).",
+    tips: ["Cover generational GC", "Explain stop-the-world pauses", "Mention tuning strategies"],
+    timeLimit: 120,
+  },
+];
+
+// ==================== ACHIEVEMENTS ====================
+export const ACHIEVEMENT_DEFINITIONS = [
+  { id: "first_interview", icon: "🎙️", title: "First Steps", desc: "Complete your first mock interview", xp: 50, condition: (stats) => stats.totalInterviews >= 1 },
+  { id: "streak_3", icon: "🔥", title: "On Fire", desc: "Maintain a 3-day practice streak", xp: 75, condition: (stats) => stats.streak >= 3 },
+  { id: "streak_7", icon: "⚡", title: "Week Warrior", desc: "Maintain a 7-day practice streak", xp: 150, condition: (stats) => stats.streak >= 7 },
+  { id: "score_80", icon: "🥈", title: "Silver Performer", desc: "Score 80+ in any interview", xp: 100, condition: (stats) => stats.bestScore >= 80 },
+  { id: "score_90", icon: "🥇", title: "Gold Standard", desc: "Score 90+ in any interview", xp: 200, condition: (stats) => stats.bestScore >= 90 },
+  { id: "five_interviews", icon: "🏅", title: "Dedicated Learner", desc: "Complete 5 mock interviews", xp: 125, condition: (stats) => stats.totalInterviews >= 5 },
+  { id: "ten_interviews", icon: "🏆", title: "Interview Veteran", desc: "Complete 10 mock interviews", xp: 250, condition: (stats) => stats.totalInterviews >= 10 },
+  { id: "resume_analyzed", icon: "📋", title: "Resume Ready", desc: "Analyze your resume", xp: 50, condition: (stats) => stats.resumeAnalyzed },
+  { id: "all_tabs", icon: "🔍", title: "Deep Diver", desc: "Review all feedback tabs after an interview", xp: 75, condition: (stats) => stats.viewedAllTabs },
+  { id: "practice_code", icon: "💻", title: "Code Warrior", desc: "Complete a coding practice session", xp: 100, condition: (stats) => stats.codeSessionsDone >= 1 },
+  { id: "avg_75", icon: "📈", title: "Consistent Performer", desc: "Maintain an average score of 75+", xp: 200, condition: (stats) => stats.avgScore >= 75 },
+  { id: "perfect_score", icon: "⭐", title: "Perfectionist", desc: "Score 95+ in any interview", xp: 500, condition: (stats) => stats.bestScore >= 95 },
+];
+
+// ==================== STUDY PLAN TEMPLATES ====================
+export const STUDY_PLAN_TEMPLATES = {
+  communication: {
+    title: "Communication Mastery",
+    duration: "2 weeks",
+    weeks: [
+      {
+        week: 1,
+        focus: "Foundation",
+        tasks: [
+          { day: "Mon", task: "Record yourself answering 'Tell me about yourself' — review for filler words" },
+          { day: "Tue", task: "Practice STAR method with 3 behavioral questions" },
+          { day: "Wed", task: "Shadow a TED talk speaker — note pacing and pauses" },
+          { day: "Thu", task: "Answer 5 questions aloud, targeting < 2 filler words each" },
+          { day: "Fri", task: "Do a full mock interview focusing on clarity" },
+        ],
+      },
+      {
+        week: 2,
+        focus: "Polish",
+        tasks: [
+          { day: "Mon", task: "Work on voice modulation — vary tone for emphasis" },
+          { day: "Tue", task: "Practice concise answers: < 2 min per behavioral question" },
+          { day: "Wed", task: "Record and transcribe — find your most common filler words" },
+          { day: "Thu", task: "Mock interview with a friend — get real-time feedback" },
+          { day: "Fri", task: "Full mock with all improvements applied — measure progress" },
+        ],
+      },
+    ],
+  },
+  technical: {
+    title: "Technical Interview Mastery",
+    duration: "2 weeks",
+    weeks: [
+      {
+        week: 1,
+        focus: "Core Data Structures",
+        tasks: [
+          { day: "Mon", task: "Arrays, Strings — solve 5 LeetCode easy problems" },
+          { day: "Tue", task: "Linked Lists — implement from scratch, solve 3 problems" },
+          { day: "Wed", task: "Stacks & Queues — solve 4 problems including monotonic stack" },
+          { day: "Thu", task: "Hash Maps & Sets — solve 5 two-sum variations" },
+          { day: "Fri", task: "Trees (BFS, DFS) — solve 5 traversal problems" },
+        ],
+      },
+      {
+        week: 2,
+        focus: "Algorithms",
+        tasks: [
+          { day: "Mon", task: "Binary Search — solve 6 problems including rotated array" },
+          { day: "Tue", task: "Sliding Window & Two Pointers — 5 problems" },
+          { day: "Wed", task: "Dynamic Programming — 4 classic problems (knapsack, LCS, etc.)" },
+          { day: "Thu", task: "Graphs (Dijkstra, Union Find) — 4 problems" },
+          { day: "Fri", task: "Full timed mock — 2 medium problems in 60 minutes" },
+        ],
+      },
+    ],
+  },
+  behavioral: {
+    title: "Behavioral Interview Mastery",
+    duration: "2 weeks",
+    weeks: [
+      {
+        week: 1,
+        focus: "Story Bank",
+        tasks: [
+          { day: "Mon", task: "Write 3 STAR stories about leadership situations" },
+          { day: "Tue", task: "Write 3 STAR stories about conflict resolution" },
+          { day: "Wed", task: "Write 3 STAR stories about failure and recovery" },
+          { day: "Thu", task: "Write 3 STAR stories about innovation and initiative" },
+          { day: "Fri", task: "Practice all 12 stories aloud — time each one" },
+        ],
+      },
+      {
+        week: 2,
+        focus: "Delivery",
+        tasks: [
+          { day: "Mon", task: "Map your stories to Amazon Leadership Principles" },
+          { day: "Tue", task: "Practice adapting one story for 3 different questions" },
+          { day: "Wed", task: "Mock with 10 random behavioral questions — no prep" },
+          { day: "Thu", task: "Refine your weakest 3 stories with more specific metrics" },
+          { day: "Fri", task: "Full behavioral interview mock — record and review" },
+        ],
+      },
+    ],
+  },
+};
+
+// ==================== QUESTION BANK (sample) ====================
+export const SAMPLE_QUESTION_BANK = {
+  behavioral: [
+    { id: "b1", q: "Tell me about a time you led a team through a difficult challenge.", difficulty: "medium", tags: ["leadership", "teamwork"] },
+    { id: "b2", q: "Describe a situation where you had to make a difficult decision with incomplete information.", difficulty: "hard", tags: ["decision-making", "ambiguity"] },
+    { id: "b3", q: "Give an example of a time you went above and beyond for a customer or stakeholder.", difficulty: "easy", tags: ["customer focus", "initiative"] },
+    { id: "b4", q: "Tell me about a time you failed and what you learned from it.", difficulty: "medium", tags: ["failure", "growth mindset"] },
+    { id: "b5", q: "Describe a conflict with a coworker and how you resolved it.", difficulty: "medium", tags: ["conflict", "communication"] },
+    { id: "b6", q: "Tell me about a project you're most proud of and your specific contribution.", difficulty: "easy", tags: ["achievement", "impact"] },
+    { id: "b7", q: "How do you prioritize when you have multiple urgent tasks competing for your attention?", difficulty: "medium", tags: ["prioritization", "time management"] },
+    { id: "b8", q: "Describe a time you had to influence someone without direct authority.", difficulty: "hard", tags: ["influence", "leadership"] },
+  ],
+  technical: [
+    { id: "t1", q: "Explain the difference between process and thread. When would you use each?", difficulty: "medium", tags: ["OS", "concurrency"] },
+    { id: "t2", q: "What is Big O notation and how do you analyze time and space complexity?", difficulty: "easy", tags: ["algorithms", "fundamentals"] },
+    { id: "t3", q: "Explain how a hash table works internally including collision resolution.", difficulty: "medium", tags: ["data structures", "hashing"] },
+    { id: "t4", q: "What is the difference between REST and GraphQL? When would you choose each?", difficulty: "medium", tags: ["API design", "web"] },
+    { id: "t5", q: "Explain how HTTPS works from handshake to encrypted data transfer.", difficulty: "hard", tags: ["networking", "security"] },
+    { id: "t6", q: "What is database normalization? Explain 1NF, 2NF, and 3NF with examples.", difficulty: "medium", tags: ["database", "SQL"] },
+    { id: "t7", q: "How does a load balancer work? What are the common algorithms?", difficulty: "medium", tags: ["systems", "scalability"] },
+    { id: "t8", q: "Explain the SOLID principles with a concrete code example for each.", difficulty: "hard", tags: ["OOP", "design principles"] },
+  ],
+  "system-design": [
+    { id: "s1", q: "Design a distributed cache system like Redis.", difficulty: "hard", tags: ["caching", "distributed systems"] },
+    { id: "s2", q: "Design a real-time notification system for a social media platform.", difficulty: "hard", tags: ["real-time", "WebSockets", "queues"] },
+    { id: "s3", q: "Design a photo sharing service like Instagram (focus on the upload flow).", difficulty: "hard", tags: ["media storage", "CDN", "database"] },
+    { id: "s4", q: "Design a rate limiting system for a public API.", difficulty: "medium", tags: ["rate limiting", "distributed systems"] },
+    { id: "s5", q: "How would you design a search autocomplete system?", difficulty: "medium", tags: ["search", "trie", "caching"] },
+    { id: "s6", q: "Design a leaderboard system that can handle millions of users.", difficulty: "hard", tags: ["Redis sorted sets", "ranking", "scalability"] },
+  ],
+};
+
+// ==================== PERFORMANCE INSIGHTS ====================
+export const SCORE_INSIGHTS = {
+  excellent: { min: 90, label: "Excellent", color: "#10b981", advice: "You're interview-ready! Focus on maintaining consistency and preparing your questions for interviewers." },
+  good: { min: 75, label: "Good", color: "#3b82f6", advice: "Strong performance. Target your weak categories with focused practice this week." },
+  average: { min: 60, label: "Average", color: "#f59e0b", advice: "Solid foundation. Identify your 2 weakest areas and dedicate focused 20-min daily sessions." },
+  needsWork: { min: 0, label: "Needs Work", color: "#ef4444", advice: "Don't be discouraged — every expert was once a beginner. Follow the study plan generated for you." },
+};

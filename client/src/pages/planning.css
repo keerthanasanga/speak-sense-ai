@@ -711,3 +711,38 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==================== DOMAIN TIPS PANEL ==================== */
+.domain-tips-panel {
+  background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.06));
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 12px;
+  padding: 1.1rem 1.2rem;
+  margin-top: 1rem;
+}
+
+.domain-tips-panel h4 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #60a5fa;
+  margin-bottom: 0.7rem;
+}
+
+.domain-tips-list {
+  padding-left: 1.2rem;
+  margin: 0;
+}
+
+.domain-tips-list li {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 0.35rem;
+  line-height: 1.4;
+}
+
+.domain-tips-more {
+  font-size: 0.75rem;
+  color: #475569;
+  margin-top: 0.6rem;
+  font-style: italic;
+}

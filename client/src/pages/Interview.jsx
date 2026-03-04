@@ -727,7 +727,7 @@ export default function Interview() {
           ref={characterModuleFrameRef}
           key={`${selectedCharacter?.id}-${embeddedCharacterRole}`}
           title={`${selectedCharacter.name} 3D interviewer`}
-          src={`/character-system/index.html?embed=1&role=${encodeURIComponent(embeddedCharacterRole)}`}
+          src={`/avatar-system/index.html?embed=1&role=${encodeURIComponent(embeddedCharacterRole)}`}
           className="ai-panel-3d-frame"
         />
       );
@@ -2239,89 +2239,95 @@ export default function Interview() {
                     <span>{isAiTyping ? "Thinking…" : isSpeaking ? "Speaking…" : "Listening"}</span>
                   </div>
 
-                  <button
-                    type="button"
-                    className="voice-toggle-btn"
-                    onClick={toggleAiVoice}
-                    aria-pressed={aiVoiceEnabled}
-                    aria-label={aiVoiceEnabled ? "Disable AI voice" : "Enable AI voice"}
-                  >
-                    {aiVoiceEnabled ? "🔊 AI Voice On" : "🔈 AI Voice Off"}
-                  </button>
+                  {/* Grouped panel controls — stacked vertically, no overlap */}
+                  <div className="panel-controls">
+                    <button
+                      type="button"
+                      className="voice-toggle-btn"
+                      onClick={toggleAiVoice}
+                      aria-pressed={aiVoiceEnabled}
+                      aria-label={aiVoiceEnabled ? "Disable AI voice" : "Enable AI voice"}
+                    >
+                      {aiVoiceEnabled ? "🔊 Voice On" : "🔈 Voice Off"}
+                    </button>
 
-                  <button
-                    type="button"
-                    className="voice-toggle-btn"
-                    onClick={toggleAutoVoiceInput}
-                    aria-pressed={autoVoiceInputEnabled}
-                    aria-label={autoVoiceInputEnabled ? "Disable auto voice input" : "Enable auto voice input"}
-                  >
-                    {autoVoiceInputEnabled ? "🎙 Auto Listen On" : "🎙 Auto Listen Off"}
-                  </button>
+                    <button
+                      type="button"
+                      className="voice-toggle-btn"
+                      onClick={toggleAutoVoiceInput}
+                      aria-pressed={autoVoiceInputEnabled}
+                      aria-label={autoVoiceInputEnabled ? "Disable auto voice input" : "Enable auto voice input"}
+                    >
+                      {autoVoiceInputEnabled ? "🎙 Auto On" : "🎙 Auto Off"}
+                    </button>
 
-                  <button
-                    type="button"
-                    className="voice-toggle-btn"
-                    onClick={() => setAutoPlayEnabled(!autoPlayEnabled)}
-                    aria-pressed={autoPlayEnabled}
-                    aria-label={autoPlayEnabled ? "Disable auto-play questions" : "Enable auto-play questions"}
-                    title={autoPlayEnabled ? "Auto-play next questions is ON" : "Auto-play next questions is OFF"}
-                  >
-                    {autoPlayEnabled ? "⚡ Auto-Play On" : "⚡ Auto-Play Off"}
-                  </button>
+                    <button
+                      type="button"
+                      className="voice-toggle-btn"
+                      onClick={() => setAutoPlayEnabled(!autoPlayEnabled)}
+                      aria-pressed={autoPlayEnabled}
+                      aria-label={autoPlayEnabled ? "Disable auto-play questions" : "Enable auto-play questions"}
+                      title={autoPlayEnabled ? "Auto-play ON" : "Auto-play OFF"}
+                    >
+                      {autoPlayEnabled ? "⚡ Auto-Play" : "⚡ Manual"}
+                    </button>
 
-                  <button
-                    type="button"
-                    className="voice-toggle-btn"
-                    onClick={() => setUse3DScene(!use3DScene)}
-                    aria-pressed={use3DScene}
-                    aria-label={use3DScene ? "Switch to 2D avatar" : "Switch to 3D mode"}
-                    title={use3DScene ? "2D avatar" : "3D immersive scene"}
-                  >
-                    {use3DScene ? "🧊 3D" : "🧸 2D"}
-                  </button>
+                    <button
+                      type="button"
+                      className="voice-toggle-btn"
+                      onClick={() => setUse3DScene(!use3DScene)}
+                      aria-pressed={use3DScene}
+                      aria-label={use3DScene ? "Switch to 2D avatar" : "Switch to 3D mode"}
+                      title={use3DScene ? "2D avatar" : "3D immersive scene"}
+                    >
+                      {use3DScene ? "🧊 3D" : "🧸 2D"}
+                    </button>
+                  </div>
+
+                  {/* User PiP camera — inside panel, overlays bottom-right corner */}
+                  {!useChat && (
+                    <div className="video-container video-container-user pip-camera">
+                      <video ref={videoRef} autoPlay playsInline muted={isMuted} className={isVideoOff ? "video-off" : ""} />
+                      <div className="self-video-badge">You</div>
+                      {isVideoOff && (
+                        <div className="video-off-placeholder">
+                          <span className="video-off-icon">📹</span>
+                          <p>Camera is off</p>
+                        </div>
+                      )}
+                      <div className="video-controls">
+                        <button className={`control-btn ${isMuted ? "active" : ""}`} onClick={toggleMute} aria-label={isMuted ? "Unmute microphone" : "Mute microphone"} aria-pressed={isMuted}>
+                          {isMuted ? "🔇" : "🎤"}
+                        </button>
+                        <button className={`control-btn ${isVideoOff ? "active" : ""}`} onClick={toggleVideo} aria-label={isVideoOff ? "Turn camera on" : "Turn camera off"} aria-pressed={isVideoOff}>
+                          {isVideoOff ? "📷" : "🎥"}
+                        </button>
+                        <button
+                          className={`control-btn ${isListeningUser ? "active" : ""}`}
+                          onClick={toggleVoiceInput}
+                          aria-label={isListeningUser ? "Stop voice transcription" : "Start voice transcription"}
+                          aria-pressed={isListeningUser}
+                          title={isListeningUser ? "Stop speech-to-text" : "Speak to transcribe"}
+                        >
+                          {isListeningUser ? "⏹" : "🎙"}
+                        </button>
+                        <button className="control-btn settings" onClick={() => setUseChat(true)} aria-label="Switch to chat mode">
+                          💬 Chat
+                        </button>
+                      </div>
+                      {(isListeningUser || liveTranscript) && (
+                        <div className="live-transcript" aria-live="polite">
+                          {liveTranscript || "Listening… speak now"}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="panel-desk"></div>
                 </div>
 
-                {/* User video / chat toggle */}
-                {!useChat ? (
-                  <div className="video-container video-container-user pip-camera">
-                    <video ref={videoRef} autoPlay playsInline muted={isMuted} className={isVideoOff ? "video-off" : ""} />
-                    <div className="self-video-badge">You</div>
-                    {isVideoOff && (
-                      <div className="video-off-placeholder">
-                        <span className="video-off-icon">📹</span>
-                        <p>Camera is off</p>
-                      </div>
-                    )}
-                    <div className="video-controls">
-                      <button className={`control-btn ${isMuted ? "active" : ""}`} onClick={toggleMute} aria-label={isMuted ? "Unmute microphone" : "Mute microphone"} aria-pressed={isMuted}>
-                        {isMuted ? "🔇" : "🎤"}
-                      </button>
-                      <button className={`control-btn ${isVideoOff ? "active" : ""}`} onClick={toggleVideo} aria-label={isVideoOff ? "Turn camera on" : "Turn camera off"} aria-pressed={isVideoOff}>
-                        {isVideoOff ? "📷" : "🎥"}
-                      </button>
-                      <button
-                        className={`control-btn ${isListeningUser ? "active" : ""}`}
-                        onClick={toggleVoiceInput}
-                        aria-label={isListeningUser ? "Stop voice transcription" : "Start voice transcription"}
-                        aria-pressed={isListeningUser}
-                        title={isListeningUser ? "Stop speech-to-text" : "Speak to transcribe"}
-                      >
-                        {isListeningUser ? "⏹" : "🎙"}
-                      </button>
-                      <button className="control-btn settings" onClick={() => setUseChat(true)} aria-label="Switch to chat mode">
-                        💬 Chat Mode
-                      </button>
-                    </div>
-                    {(isListeningUser || liveTranscript) && (
-                      <div className="live-transcript" aria-live="polite">
-                        {liveTranscript || "Listening… speak now"}
-                      </div>
-                    )}
-                  </div>
-                ) : (
+                {/* Chat mode — rendered outside panel when active */}
+                {useChat && (
                   /* Chat mode */
                   <div className="chat-container">
                     <div className="chat-header">

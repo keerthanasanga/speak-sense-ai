@@ -1193,21 +1193,32 @@ body {
   margin-bottom: 0.55rem;
 }
 
-.voice-toggle-btn {
+/* Container for all panel control buttons — stacks them vertically */
+.panel-controls {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.75rem;
+  right: 0.75rem;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-end;
+}
+
+.voice-toggle-btn {
+  position: static;
+  z-index: auto;
   border: 1px solid rgba(125, 211, 252, 0.35);
   background: rgba(14, 116, 144, 0.58);
   color: #dbeafe;
   border-radius: var(--radius-md);
-  padding: 0.46rem 0.62rem;
-  font-size: 0.78rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   backdrop-filter: blur(4px);
+  white-space: nowrap;
 }
 
 .voice-toggle-btn:hover:not(:disabled) {
@@ -1244,13 +1255,13 @@ body {
   max-width: 100%;
 }
 
-/* PiP self camera (WhatsApp/Meet style) */
+/* PiP self camera (WhatsApp/Meet style) — top-left so it doesn't cover name/status */
 .video-container-user.pip-camera {
   position: absolute;
-  right: 1rem;
+  left: 1rem;
   bottom: 1rem;
-  width: 240px;
-  height: 150px;
+  width: 200px;
+  height: 130px;
   border-radius: var(--radius-md);
   border: 3px solid rgba(125, 211, 252, 0.6);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
@@ -1264,27 +1275,27 @@ body {
 
 @media (max-width: 1024px) {
   .video-container-user.pip-camera {
-    width: 200px;
-    height: 130px;
-    right: 0.8rem;
+    width: 170px;
+    height: 110px;
+    left: 0.8rem;
     bottom: 0.8rem;
   }
 }
 
 @media (max-width: 768px) {
   .video-container-user.pip-camera {
-    width: 160px;
-    height: 100px;
-    right: 0.6rem;
+    width: 140px;
+    height: 88px;
+    left: 0.6rem;
     bottom: 0.6rem;
   }
 }
 
 @media (max-width: 576px) {
   .video-container-user.pip-camera {
-    width: 120px;
-    height: 75px;
-    right: 0.4rem;
+    width: 110px;
+    height: 68px;
+    left: 0.4rem;
     bottom: 0.4rem;
   }
 }
