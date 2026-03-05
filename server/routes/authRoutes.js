@@ -78,7 +78,17 @@ const createDemoAuthResponse = async (provider) => {
     isDemo:     user.isDemo     || false
   };
 
-  const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "7d" });
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not configured on the server");
+  }
+
+  let token;
+  try {
+    token = jwt.sign(tokenPayload, secret, { expiresIn: "7d" });
+  } catch (jwtErr) {
+    throw new Error(`Token signing failed: ${jwtErr.message}`);
+  }
 
   return {
     message: `${selected.authProvider} demo login successful`,
@@ -233,8 +243,8 @@ router.post("/social", async (req, res) => {
     const payload = await createDemoAuthResponse(normalizedProvider);
     return res.status(200).json(payload);
   } catch (error) {
-    console.error("Social auth error:", error);
-    return res.status(500).json({ message: "Server error during social login" });
+    console.error("Social auth error:", error.message, error.stack);
+    return res.status(500).json({ message: `Server error during social login: ${error.message}` });
   }
 });
 
@@ -243,8 +253,8 @@ router.post("/demo", async (_req, res) => {
     const payload = await createDemoAuthResponse("demo");
     return res.status(200).json(payload);
   } catch (error) {
-    console.error("Demo auth error:", error);
-    return res.status(500).json({ message: "Server error during demo login" });
+    console.error("Demo auth error:", error.message, error.stack);
+    return res.status(500).json({ message: `Server error during demo login: ${error.message}` });
   }
 });
 
