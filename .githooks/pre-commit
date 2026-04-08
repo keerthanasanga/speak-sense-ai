@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Block commit if staged content contains common credential/token patterns.
+PATTERN='(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (RSA|EC|OPENSSH|DSA|PRIVATE) KEY-----|xox[baprs]-[A-Za-z0-9-]{10,})'
+
+if git diff --cached --name-only --diff-filter=ACM | grep -q .; then
+  if git diff --cached | grep -E -n "$PATTERN" >/tmp/precommit_secret_hits.txt; then
+    echo "Commit blocked: possible secret/token detected in staged changes."
+    echo "Review matches:"
+    cat /tmp/precommit_secret_hits.txt
+    rm -f /tmp/precommit_secret_hits.txt
+    exit 1
+  fi
+fi
+
+exit 0
