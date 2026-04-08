@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./landing.css";
 
 export default function Landing() {
@@ -407,6 +408,8 @@ export default function Landing() {
           </div>
 
           <div className="cta-buttons">
+
+      <PageFeaturePanel pageKey="landing" />
             <Link to="/signup" className="primary-btn glow-effect">
               Start Free Trial
               <span className="btn-icon">→</span>

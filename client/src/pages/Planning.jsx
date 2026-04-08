@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { DOMAIN_TIPS } from "../data/interviewDatasets";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./planning.css";
 
 export default function Planning() {
@@ -183,6 +184,8 @@ export default function Planning() {
             <span className="progress-step">Feedback</span>
           </div>
         </div>
+
+        <PageFeaturePanel pageKey="planning" />
 
         <div className="planning-content">
           {/* Left Side - Selection Area */}

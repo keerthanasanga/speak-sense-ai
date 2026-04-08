@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { SAMPLE_QUESTION_BANK } from "../data/interviewDatasets";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./question-bank.css";
 
 const ALL_QUESTIONS = [
@@ -67,6 +68,8 @@ export default function QuestionBank() {
             <span className="qb-stat">{bookmarks.length} Bookmarked</span>
           </div>
         </div>
+
+        <PageFeaturePanel pageKey="questionbank" />
 
         {/* Search + Filters */}
         <div className="qb-controls">

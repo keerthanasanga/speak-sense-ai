@@ -2334,6 +2334,80 @@ video.video-off {
   gap: var(--spacing-sm);
 }
 
+.market-prep-card {
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 62%),
+    rgba(8, 19, 36, 0.72);
+  padding: 0.95rem;
+  box-shadow: 0 14px 28px rgba(4, 12, 23, 0.36);
+}
+
+.market-prep-card h3 {
+  font-size: 1rem;
+  color: #e0f2ff;
+  margin-bottom: 0.35rem;
+}
+
+.market-prep-score {
+  font-size: 0.9rem;
+  color: #86efac;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.market-prep-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.market-prep-pills span {
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  background: rgba(14, 52, 78, 0.42);
+  color: #bae6fd;
+  font-size: 0.72rem;
+  padding: 0.22rem 0.52rem;
+}
+
+.market-prep-label {
+  font-size: 0.72rem;
+  color: #7dd3fc;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.3rem;
+}
+
+.market-prep-text {
+  font-size: 0.84rem;
+  color: #dbeafe;
+  margin-bottom: 0.6rem;
+}
+
+.market-prep-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.market-prep-list li {
+  font-size: 0.84rem;
+  color: #c7e8ff;
+  margin-bottom: 0.35rem;
+  position: relative;
+  padding-left: 0.95rem;
+}
+
+.market-prep-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #67e8f9;
+}
+
 /* End Interview Button */
 .end-interview-btn {
   background: linear-gradient(135deg, var(--color-danger), var(--color-danger-dark));

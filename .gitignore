@@ -121,6 +121,9 @@ storybook-static/
 # ── Claude Code ───────────────────────────
 .claude/projects/
 
+# ── Local agent tooling ───────────────────
+.local-tools/
+
 # ── 3D Model caches ───────────────────────────────────
 *.glb.cache
 *.gltf.cache

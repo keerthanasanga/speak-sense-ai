@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
-import SignUp from "../pages/signup";
+import SignUp from "../pages/Signup";
 
 const renderWithRouter = (ui) =>
   render(
@@ -30,7 +30,8 @@ describe("Auth pages", () => {
   test("renders Sign Up page", () => {
     renderWithRouter(<SignUp />);
     expect(screen.getByRole("heading", { name: /create account/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
   });
 });

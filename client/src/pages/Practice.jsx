@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";  // Add this import
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./Practice.css";
 
 export default function Practice() {
@@ -545,6 +546,8 @@ console.log(twoSum([3, 3], 6));          // [0, 1]`,
             </div>
           </div>
         </div>
+
+        <PageFeaturePanel pageKey="practice" />
 
         {/* Domain Selection */}
         <div className="domain-section">

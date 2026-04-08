@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { getStoredUser } from "../utils/authStorage";
 import { COMMON_MISTAKES, STUDY_PLAN_TEMPLATES, SALARY_DATA } from "../data/interviewDatasets";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./results.css";
 
 const toFiniteNumber = (value, fallback = 0) => {
@@ -373,6 +374,8 @@ export default function Results() {
             </Link>
           </div>
         </div>
+
+        <PageFeaturePanel pageKey="results" />
 
         {dbSaveStatus !== "unknown" && (
           <div className={`db-save-status ${dbSaveStatus === "saved" ? "saved" : "failed"}`} role="status" aria-live="polite">

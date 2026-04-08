@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getStoredUser, saveStoredUser } from "../utils/authStorage";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./Settings.css";
 
 const defaultProfile = {
@@ -286,6 +287,8 @@ export default function Settings() {
             )}
           </div>
         </div>
+
+        <PageFeaturePanel pageKey="settings" />
 
         {/* Settings Layout */}
         <div className="settings-layout">

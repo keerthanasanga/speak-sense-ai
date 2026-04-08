@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./course.css";
 
 export default function Courses() {
@@ -431,6 +432,8 @@ export default function Courses() {
             </Link>
           </div>
         </div>
+
+        <PageFeaturePanel pageKey="courses" />
 
         {/* Statistics Cards */}
         <div className="stats-grid">

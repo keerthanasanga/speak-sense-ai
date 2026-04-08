@@ -163,8 +163,8 @@ describe("Interview posture integration", () => {
     fireEvent.click(toggleBtn);
     expect(container.querySelector(".ai-avatar-panel")).toBeInTheDocument();
     expect(screen.queryByTestId("mock-interview-scene-3d")).not.toBeInTheDocument();
-    // now there should be a CharacterFigure - check for posture wrapper class
-    expect(container.querySelector(".avatar-game-wrapper")).toBeInTheDocument();
+    // now there should be the 2D emoji panel avatar rendered
+    expect(container.querySelector(".ai-panel-emoji")).toBeInTheDocument();
 
     // toggle back to 3D and verify mock returns
     fireEvent.click(screen.getByRole("button", { name: /switch to 3d mode/i }));

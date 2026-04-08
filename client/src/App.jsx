@@ -15,6 +15,7 @@ import Courses from "./pages/Courses";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import QuestionBank from "./pages/QuestionBank";
 import AdvancedNavbar from "./components/AdvancedNavbar";
+import PageExperienceLayer from "./components/PageExperienceLayer";
 import { getAuthToken } from "./utils/authStorage";
 import RouteErrorBoundary from "./RouteErrorBoundary";
 
@@ -191,6 +192,7 @@ function App() {
       <AuthSessionBridge />
       <RedirectTraceLogger />
       <AdvancedNavbar />
+      <PageExperienceLayer />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<PublicAuthRoute><Login /></PublicAuthRoute>} />

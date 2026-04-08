@@ -10,6 +10,7 @@ import FeedbackSidebar from "./FeedbackSidebar";
 import PostureChecker from "./PostureChecker";
 import InterviewScene3D from "../components/Interview3D/InterviewScene3D";
 import InterviewHUD from "../components/Interview3D/InterviewHUD";
+import { buildMarketPrepBrief } from "../utils/marketIntelligence";
 import "./interview.css";
 
 const AVATAR_PACK_STORAGE_KEY = "characterPackStyle";
@@ -512,6 +513,15 @@ export default function Interview() {
   const selectedDomainName = planningSelections.domain?.name || "";
   const selectedDifficultyName = planningSelections.difficulty?.name || "";
   const selectedInterviewTypeName = planningSelections.type?.name || "";
+  const marketPrepBrief = useMemo(() => {
+    return buildMarketPrepBrief({
+      user: userProfile,
+      targetRole: interviewConfig.targetRole,
+      domain: selectedDomainName,
+      difficulty: selectedDifficultyName,
+    });
+  }, [interviewConfig.targetRole, selectedDifficultyName, selectedDomainName, userProfile]);
+
   const embeddedCharacterRole = useMemo(() => {
     const mode = String(interviewConfig.mode || "").toLowerCase();
     const roleText = String(selectedCharacter?.role || "").toLowerCase();
@@ -2594,6 +2604,28 @@ export default function Interview() {
                       Latest answer check: {latestVerification.correctnessLabel === "correct" ? "Correct" : latestVerification.correctnessLabel === "partially-correct" ? "Partially correct" : "Needs improvement"} ({latestVerification.overallScore}/100)
                     </p>
                   )}
+                </div>
+
+                <div className="market-prep-card" aria-live="polite">
+                  <h3>Future Market Coach</h3>
+                  <p className="market-prep-score">Role readiness: {marketPrepBrief.readinessScore}%</p>
+                  <div className="market-prep-pills">
+                    <span>Demand: {marketPrepBrief.demandLevel}</span>
+                    <span>Velocity: {marketPrepBrief.marketVelocity}%</span>
+                    <span>{marketPrepBrief.salaryBand}</span>
+                  </div>
+                  <p className="market-prep-label">Past skills detected</p>
+                  <p className="market-prep-text">
+                    {marketPrepBrief.pastSkills.length
+                      ? marketPrepBrief.pastSkills.slice(0, 4).join(", ")
+                      : "No profile skills detected yet. Add skills in settings for deeper personalization."}
+                  </p>
+                  <p className="market-prep-label">Next market skills to build</p>
+                  <ul className="market-prep-list">
+                    {marketPrepBrief.skillGaps.slice(0, 3).map((skill) => (
+                      <li key={skill}>{skill}</li>
+                    ))}
+                  </ul>
                 </div>
 
                 <button className="end-interview-btn" onClick={endInterview} aria-label="End interview session">

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import API from "../services/api";
 import { getAuthToken, getStoredUser, saveStoredUser } from "../utils/authStorage";
 import { DAILY_CHALLENGES, ACHIEVEMENT_DEFINITIONS, SCORE_INSIGHTS } from "../data/interviewDatasets";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./dashboard.css";
 
 export default function Dashboard() {
@@ -146,6 +147,8 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="dashboard-main">
+        <PageFeaturePanel pageKey="dashboard" />
+
         {/* Welcome Section */}
         <div className="welcome-section">
           <div className="welcome-text">

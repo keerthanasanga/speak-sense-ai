@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import API from "../services/api";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./resume-analyzer.css";
 
 const SCORE_LABELS = { 90: "Excellent", 75: "Good", 60: "Fair", 0: "Needs Work" };
@@ -161,6 +162,8 @@ export default function ResumeAnalyzer() {
             </p>
           </div>
         </div>
+
+        <PageFeaturePanel pageKey="resume" />
 
         <div className="resume-layout">
           {/* Input Panel */}

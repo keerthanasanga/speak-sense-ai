@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import API from "../services/api";
+import PageFeaturePanel from "../components/PageFeaturePanel";
 import "./history.css";
 
 // ==================== FEATURE 7: Performance Trend Chart ====================
@@ -536,6 +537,8 @@ export default function History() {
       
       <div className="history-container">
         <Header onExport={handleExport} />
+
+        <PageFeaturePanel pageKey="history" />
         
         <StatisticsGrid stats={stats} />
         
